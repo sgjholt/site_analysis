@@ -62,19 +62,23 @@ class Site:
                 counter += 1
         plt.xlabel('Frequency [Hz]')
         plt.ylabel('S/B Ratio')
-        plt.legend()
+        plt.legend(loc=3)
         if show:
             plt.show()
 
     def qc(self, plot_on=False):
-        code = can_qc(self.site)
-        if code is None:
+        code = can_qc('/home/sgjholt/site_ave/', self.site)
+        if code is not None:
             if plot_on:
-                self.plot_sb()
+                ben = parse_ben_sb('/home/sgjholt/site_ave/', code)
+                plt.loglog(ben[:, 0], ben[:, 1], 'r', label='Ben')
+                self.plot_sb(stdv=(1,), show=False)
+        else:
+            pass
 
 
-def can_qc(site_name):
-    with open('/home/james/Dropbox/site_ave/stcodeconv.dat') as site_codes:
+def can_qc(parent_directory, site_name):
+    with open(parent_directory+'stcodeconv.dat') as site_codes:
         ben_site_dict = {sc.split()[0]: sc.split()[1] for sc in site_codes}
 
     possible = True
@@ -84,12 +88,13 @@ def can_qc(site_name):
         possible = False
 
     if possible:
-        return ben_site_dict['site_name']
+        return ben_site_dict[site_name]
     else:
-        print('QC not available')
+        print('QC not available for ' + site_name)
         return None
 
 
-def parse_ben_sb(site, code_dict):
-    bens = np.loadtxt(code_dict[site]+'res_ave.out')
+def parse_ben_sb(parent_directory, code):
+    s_b = np.loadtxt(parent_directory+code+'res_ave.out')
+    return s_b
 
