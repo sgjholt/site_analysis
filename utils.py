@@ -15,3 +15,8 @@ def rand_qc():
     for i, site in enumerate(sample):
         plt.subplot(2, 5, i+1)
         site.qc(plot_on=True)
+
+
+
+
+

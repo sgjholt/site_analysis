@@ -1,15 +1,19 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from parsers import parse_ben_sb, read_kik_vel_file
 
 
 class Site:
     """
-    Site helper class for visulaising and comparing site conditions.
-     USAGE: var = site('SITE_CODE_HERE', pard='/user/home/one_higher_than_S_B_folder')
-     Attributes: parent_directory - defaults to seismo-0's if none given
-                 site - name of the site given during __init__ phase (required) - type str
-     Methods: sb_ratio() - grabs the sb_ratio
+    Site helper class for visualising and comparing site conditions.
+
+    USAGE: var = site('SITE_CODE_HERE', pard='/user/home/one_higher_than_S_B_folder')
+
+    Attributes: parent_directory - defaults to seismo-0's if none given
+                site - name of the site given during __init__ phase (required) - type str
+
+    Methods: sb_ratio() - grabs the sb_ratio
      """
 
     def __init__(self, name, pard=None):
@@ -18,6 +22,26 @@ class Site:
         else:
             self.parent_directory = '/data/share/Japan/SiteInfo/'
         self.site = name
+
+    def get_velocity_profile(self):
+        """
+        get_velocity_profile() grabs the velocity profile provided by Kik-Net (if one exists) and returns numpy.ndarray
+        object with N*M dimensions. Refer to read_kik_vel_file in parsers for detailed info.
+
+        ***NOTE***: some minor processing occurs in parser function before returning - see above for details.
+
+        USAGE: vel_profile = Site.get_velocity_profile()
+            - vel_profile[:,0] = Thickness [m]
+            - vel_profile[:,1] = Depth [m]
+            - vel_profile[:,2] = Vp [m/s]
+            - vel_profile[:,3] = Vs [m/s]
+        """
+        vels = None
+        try:
+            vels = read_kik_vel_file(self.parent_directory+'physicalData/'+self.site+'.dat')
+        except FileNotFoundError:
+            print('No velocity profile for '+self.site)
+        return vels
 
     def sb_ratio(self):
         return pd.read_csv(self.parent_directory + 'S_B/' + self.site + '.csv', index_col=0)
@@ -119,13 +143,5 @@ def can_qc(parent_directory, site_name):
         return None
 
 
-def parse_ben_sb(parent_directory, code):
-    """
-    parse_ben_sb() is a helper function for the Site class object. It uses numpy to load his data into the memory
-    as an numpy.ndarry() object.
 
-    USAGE: parse_ben_sb('directory_to_file_containing_dictionary_and_data', 'site_name')
-    """
-    s_b = np.loadtxt(parent_directory+code+'res_ave.out')
-    return s_b
 
