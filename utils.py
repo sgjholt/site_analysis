@@ -10,8 +10,8 @@ def rand_sites(sample_size):
     return [sites[num] for num in random.sample(range(len(sites)-1), sample_size)]
 
 
-def rand_qc():
-    sample = [Site(s) for s in rand_sites(10)]
+def rand_qc(working_dir):
+    sample = [Site(s, working_dir) for s in rand_sites(10)]
     for i, site in enumerate(sample):
         plt.subplot(2, 5, i+1)
         site.qc(plot_on=True)
