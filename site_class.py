@@ -1,3 +1,5 @@
+
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,18 +12,23 @@ class Site:
 
     USAGE: var = site('SITE_CODE_HERE', pard='/user/home/one_higher_than_S_B_folder')
 
-    Attributes: parent_directory - defaults to seismo-0's if none given
+    Attributes: working_directory - directory where files are stored
                 site - name of the site given during __init__ phase (required) - type str
+                vel_file_dir - directory where kik-net vel files are located - defaults to my server location if none
+                given
 
     Methods: sb_ratio() - grabs the sb_ratio
      """
+    working_directory = ''
+    site = ''
+    vel_file_dir = '/data/share/Japan/SiteInfo/physicalData/'
 
-    def __init__(self, name, pard=None):
-        if pard is not None:
-            self.parent_directory = pard
-        else:
-            self.parent_directory = '/data/share/Japan/SiteInfo/'
+    def __init__(self, name, working_directory, vel_file_dir=None):
+
+        self.working_directory = working_directory
         self.site = name
+        if vel_file_dir is not None:
+            self.vel_file_dir = vel_file_dir
 
     def get_velocity_profile(self):
         """
@@ -38,13 +45,13 @@ class Site:
         """
         vels = None
         try:
-            vels = read_kik_vel_file(self.parent_directory+'physicalData/'+self.site+'.dat')
+            vels = read_kik_vel_file(self.vel_file_dir+self.site+'.dat')
         except FileNotFoundError:
             print('No velocity profile for '+self.site)
         return vels
 
     def sb_ratio(self):
-        return pd.read_csv(self.parent_directory + 'S_B/' + self.site + '.csv', index_col=0)
+        return pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
 
     def plot_sb(self, stdv=None, pctile=None, show=True):
         """
