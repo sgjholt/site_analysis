@@ -16,7 +16,11 @@ def rand_qc(working_dir):
         plt.subplot(2, 5, i+1)
         site.qc(plot_on=True)
 
-
-
-
+# def test_loc_change():
+    # uniques = {}
+    # sites = sorted(list(set([x for x in ALL.site.values])))
+    # for site in sites:
+    #    subset = ALL.query('instrument == "Borehole" & site == \"{0}\"'.format(site))
+    #    uniques.update({site: subset.site_lon.unique()})
+    # return uniques
 

@@ -48,3 +48,14 @@ def read_kik_vel_file(fname):
         dat[n - 2, :] = [float(s) for s in strings[n]]
 
     return dat
+
+
+def parse_ben_event_select(_file):
+    strings = []
+    with open(_file, 'rt') as f:
+        for i, line in enumerate(f):
+            strings.append(line.split()[0:2])
+            strings[i] = strings[i][0][3:] + strings[i][1]
+    return [int(string) for string in strings]
+
+
