@@ -20,7 +20,7 @@ class Site:
      """
     working_directory = ''
     site = ''
-    vel_file_dir = '/data/share/Japan/SiteInfo/physicalData/'
+    vel_file_dir = '/data/share/Japan/SiteInfo/physicaldata/'
 
     def __init__(self, name, working_directory, vel_file_dir=None):
 
