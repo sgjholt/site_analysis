@@ -55,7 +55,7 @@ class Site:
         if self.get_velocity_profile() is None:
             self.has_vel_profile = False
         else:
-            if np.any(self.get_velocity_profile()['Vs'] == 0):
+            if np.any(self.get_velocity_profile()['vs'] == 0):
                 self.has_vel_profile = False
             else:
                 pass
