@@ -47,7 +47,9 @@ class Site:
             vels = read_kik_vel_file(self.vel_file_dir+self.site+'.dat')
         except FileNotFoundError:
             print('No velocity profile for '+self.site)
-        return vels
+
+        titles = ['thickness', 'depth', 'vp', 'vs']
+        return {titles[i]:vel[:,i] for i in range(len(titles))}
 
     def sb_ratio(self):
         return pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
