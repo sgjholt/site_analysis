@@ -1,9 +1,19 @@
-
+# site_class - Base Site class object - handles site metadata - produces plots and other useful helper functions.
+# VERSION: 0.9
+# AUTHOR(S): JAMES HOLT - UNIVERSITY OF LIVERPOOL
+#
+# EMAIL: j.holt@liverpool.ac.uk
+#
+#
+# ---------------------------------modules--------------------------------------#
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from parsers import parse_ben_sb, read_kik_vel_file
+from parsers import parse_ben_sb, read_kik_vel_file, parse_metadata
+
+
+# ---------------------------------classes--------------------------------------#
 
 
 class Site:
@@ -21,13 +31,18 @@ class Site:
     working_directory = ''
     site = ''
     vel_file_dir = '/data/share/Japan/SiteInfo/physicaldata/'
+    metadata_path = '/data/share/Japan/SiteInfo/sitepub_kik_en.csv'
+    metadata = {}
 
-    def __init__(self, name, working_directory, vel_file_dir=None):
+    def __init__(self, name, working_directory, vel_file_dir=None, metadata_path=None):
 
         self.working_directory = working_directory
         self.site = name
         if vel_file_dir is not None:
             self.vel_file_dir = vel_file_dir
+        if metadata_path is not None:
+            self.metadata_path = metadata_path
+        self.metadata = parse_metadata(self.metadata_path, self.site)
 
     def get_velocity_profile(self):
         """
@@ -121,10 +136,16 @@ class Site:
                 ben = parse_ben_sb('/home/sgjholt/site_ave/', code)
                 plt.loglog(ben[:, 0], ben[:, 1], 'r', label='Ben')
                 self.plot_sb(stdv=(1,), show=show)
+
             else:
                 pass
         else:
             pass
+
+    def add_metadata(self, metadata_dict):
+        self.metadata.update(metadata_dict)
+
+# ---------------------------------functions--------------------------------------#
 
 
 def can_qc(parent_directory, site_name):

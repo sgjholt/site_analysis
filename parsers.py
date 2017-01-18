@@ -1,6 +1,7 @@
 # Parsers used for the site_
 
 import numpy as np
+import pandas as pd
 
 
 def parse_ben_sb(parent_directory, code):
@@ -59,3 +60,17 @@ def parse_ben_event_select(_file):
     return [int(string) for string in strings]
 
 
+def parse_metadata(path, site):
+    """
+    parse_metadata() loads the Kik-Net site database and finds the information relevent to the site passed as an
+    argument.
+
+    :param path: str object containing path to the site database file e.g. '/home/user/sitepub_kik_en.csv'
+
+    :param site: str object containing the site name e.g. 'IWTH06'
+
+    :return: dict object containing site metadata
+    """
+    headers = ['name', 'lat', 'lon', 'altitude', 'depth', 'prefecture', 'otherlat', 'otherlon', 'instrument']
+    site_info = pd.read_csv(path, index_col=0, header=None).loc['IWTH06'].values[0:9]
+    return {header: site_info[i] for i, header in enumerate(headers)}
