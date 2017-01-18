@@ -16,7 +16,7 @@ class Site:
                 site - name of the site given during __init__ phase (required) - type str
                 vel_file_dir - directory where kik-net vel files are located - defaults to my server location if none
                 given
-
+    # blah
     Methods: sb_ratio() - grabs the sb_ratio
      """
     working_directory = ''
