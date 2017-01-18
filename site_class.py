@@ -50,7 +50,7 @@ class Site:
 
         titles = ['thickness', 'depth', 'vp', 'vs']
 
-        return {titles[i]: vels[:, i] for i in range(len(titles))}
+        return {titles[i]: vels[:, i+1] for i in range(len(titles))}
 
     def sb_ratio(self):
         return pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
