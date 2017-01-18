@@ -23,9 +23,17 @@ class Site:
     USAGE: var = site('SITE_CODE_HERE', pard='/user/home/one_higher_than_S_B_folder')
 
     Attributes: working_directory - directory where files are stored
-                site - name of the site given during __init__ phase (required) - type str
-                vel_file_dir - directory where kik-net vel files are located - defaults to my server location if none
-                given
+
+                self.site - name of the site given during __init__ phase (required) - type str
+
+                self.vel_file_dir - directory where kik-net vel files are located - defaults to my server location if none
+                given - type str
+
+                self.metadata_path - path to Kik-Net metadata file - obtained from the Kik-Net website
+                http://www.kyoshin.bosai.go.jp/ - type str
+
+                self.metadata - dict object containing metadata for the given site
+
     Methods: sb_ratio() - grabs the sb_ratio
      """
     working_directory = ''
@@ -33,6 +41,7 @@ class Site:
     vel_file_dir = '/data/share/Japan/SiteInfo/physicaldata/'
     metadata_path = '/data/share/Japan/SiteInfo/sitepub_kik_en.csv'
     metadata = {}
+    has_vel_profile = True
 
     def __init__(self, name, working_directory, vel_file_dir=None, metadata_path=None):
 
@@ -43,6 +52,13 @@ class Site:
         if metadata_path is not None:
             self.metadata_path = metadata_path
         self.metadata = parse_metadata(self.metadata_path, self.site)
+        if self.get_velocity_profile() is None:
+            self.has_vel_profile = False
+        else:
+            if np.any(self.get_velocity_profile()['Vs'] == 0):
+                self.has_vel_profile = False
+            else:
+                pass
 
     def get_velocity_profile(self):
         """
@@ -57,15 +73,16 @@ class Site:
             - vel_profile[:,2] = Vp [m/s]
             - vel_profile[:,3] = Vs [m/s]
         """
-        vels = None
+        vel_profile = None
         try:
-            vels = read_kik_vel_file(self.vel_file_dir+self.site+'.dat')
+            vel_profile = read_kik_vel_file(self.vel_file_dir+self.site+'.dat')
         except FileNotFoundError:
             print('No velocity profile for '+self.site)
+            return vel_profile
 
         titles = ['thickness', 'depth', 'vp', 'vs']
 
-        return {titles[i]: vels[:, i+1] for i in range(len(titles))}
+        return {titles[i]: vel_profile[:, i+1] for i in range(len(titles))}
 
     def sb_ratio(self):
         return pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
