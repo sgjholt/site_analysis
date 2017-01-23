@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from parsers import parse_ben_sb, read_kik_vel_file, parse_metadata
+from utils import calc_density_profile
 
 
 # ---------------------------------classes--------------------------------------#
@@ -68,10 +69,11 @@ class Site:
         ***NOTE***: some minor processing occurs in parser function before returning - see above for details.
 
         USAGE: vel_profile = Site.get_velocity_profile()
-            - vel_profile[:,0] = Thickness [m]
-            - vel_profile[:,1] = Depth [m]
-            - vel_profile[:,2] = Vp [m/s]
-            - vel_profile[:,3] = Vs [m/s]
+            - vel_profile[:,0] = index
+            - vel_profile[:,1] = Thickness [m]
+            - vel_profile[:,2] = Depth [m]
+            - vel_profile[:,3] = Vp [m/s]
+            - vel_profile[:,4] = Vs [m/s]
         """
         vel_profile = None
         try:
@@ -82,7 +84,8 @@ class Site:
 
         titles = ['thickness', 'depth', 'vp', 'vs']
 
-        return {titles[i]: vel_profile[:, i+1] for i in range(len(titles))}
+        return {titles[i]: vel_profile[:, i + 1] for i in range(len(titles))}.update(
+            {'rho': calc_density_profile(vel_profile[:, 3])})
 
     def sb_ratio(self):
         return pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
@@ -188,7 +191,3 @@ def can_qc(parent_directory, site_name):
     else:
         print('QC not available for ' + site_name)
         return None
-
-
-
-
