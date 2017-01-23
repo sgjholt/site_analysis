@@ -84,8 +84,11 @@ class Site:
 
         titles = ['thickness', 'depth', 'vp', 'vs']
 
-        return {titles[i]: vel_profile[:, i + 1] for i in
-                range(len(titles))}  # .update({'rho': calc_density_profile(vel_profile[:, 3])})
+        vel = {titles[i]: vel_profile[:, i + 1] for i in range(len(titles))}
+
+        vel.update({'rho': calc_density_profile(vel_profile[:, 3] / 1000) * 1000, 'rho_sig': 130})
+
+        return vel
 
     def sb_ratio(self):
         return pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
