@@ -6,9 +6,13 @@ import libs.SiteModel as sm
 
 
 class Sim1D(sc.Site, sm.Site1D):
-    def __init__(self, name, working_directory, vel_file_dir=None):
-        super(Sim1D, self).__init__(name, working_directory, vel_file_dir)
 
-    def add_site_profile(self):
-        self.get_velocity_profile()
-        pass
+    def __init__(self, name, working_directory, vel_file_dir=None):
+        sc.Site.__init__(self, name, working_directory, vel_file_dir)
+        sm.Site1D.__init__(self)
+        self.__add_site_profile()
+
+    def __add_site_profile(self):
+        vels = self.get_velocity_profile()
+        for i, hl in enumerate(vels['thickness']):
+            self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 1, 1])
