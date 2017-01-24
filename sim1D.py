@@ -48,7 +48,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def misfit(self, i_ang=0, elastic=True, plot_on=False, show=False):
 
-        observed = self.sb_ratio()  # pandas DataFrame object
+        observed = self.sb_ratio().loc['mean']  # pandas DataFrame object
 
         freqs = (round(float(
             observed.columns.values[0]), 2), round(float(
