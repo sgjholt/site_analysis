@@ -36,7 +36,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         if plot_on:
             plt.title('{0} : 1D Linear Elastic SHTF'.format(self.site))
-            plt.loglog(self.Freqs, np.abs(shtf), label='SHTF')
+            plt.loglog(self.Freq, np.abs(shtf), label='SHTF')
             plt.hlines(1, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('SHTF')
@@ -60,13 +60,13 @@ class Sim1D(sc.Site, sm.Site1D):
             print('Misfit not available - no forward model.')
             return None  # return nothing to break out of function
 
-        log_residuals = np.log(predicted) - np.log(observed)
+        log_residuals = np.log(predicted) - observed
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5
 
         if plot_on:
             plt.title('{0} : Log Residuals - Log RMS Misfit: {1}.'.format(self.site, round(log_rms_misfit), 2))
-            plt.loglog(self.Freqs, log_residuals, 'ko', label='Residuals')
+            plt.loglog(self.Freq, log_residuals, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('Log Residuals')
