@@ -48,11 +48,11 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def misfit(self, i_ang=0, elastic=True, plot_on=False, show=False):
 
-        observed = self.sb_ratio().loc['mean']  # pandas DataFrame object
-
         freqs = (round(float(
-            observed.columns.values[0]), 2), round(float(
-            observed.columns.values[-1]), 2), len(observed.columns.values))
+            self.sb_ratio().columns.values[0]), 2), round(float(
+            self.sb_ratio().columns.values[-1]), 2), len(self.sb_ratio().columns.values))
+
+        observed = self.sb_ratio().loc['mean']  # pandas DataFrame object
 
         predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)
 
