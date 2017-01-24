@@ -28,9 +28,9 @@ class Sim1D(sc.Site, sm.Site1D):
             return None
 
         if freqs is None:
-            self.GenFreqAxis(0.1, 25, 1000)
+            self.GenFreqAx(0.1, 25, 1000)
         else:
-            self.GenFreqAxis(freqs[0], freqs[1], freqs[3])
+            self.GenFreqAx(freqs[0], freqs[1], freqs[3])
 
         shtf = self.ComputeSHTF(i_ang, elastic)
 
