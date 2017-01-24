@@ -66,7 +66,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         if plot_on:
             plt.title('{0} : Log Residuals - Log RMS Misfit: {1}.'.format(self.site, round(log_rms_misfit), 2))
-            plt.loglog(self.Freq, log_residuals, 'ko', label='Residuals')
+            plt.plot(self.Freq, log_residuals, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('Log Residuals')
