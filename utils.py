@@ -33,3 +33,14 @@ def calc_density_profile(Vp):
     :return : np.ndarray vector containing theoretical density values
     """
     return (1.6612 * Vp) - (0.4721 * Vp ** 2) + (0.0671 * Vp ** 3) - (0.0043 * Vp ** 4) + (0.000106 * Vp ** 5)
+
+
+def binning(array, bin_width):
+    max = array.max()
+    min = array.min()
+    bins = np.linspace(min, max, max / bin_width)
+
+    binned = np.zeros(len(bins))
+
+    for i, bin in enumerate(bins):
+        binned[i] = np.mean(array[(array >= bin - bin_width) & (array < bin)])
