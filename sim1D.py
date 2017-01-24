@@ -52,7 +52,7 @@ class Sim1D(sc.Site, sm.Site1D):
             self.sb_ratio().columns.values[0]), 2), round(float(
             self.sb_ratio().columns.values[-1]), 2), len(self.sb_ratio().columns.values))
 
-        observed = self.sb_ratio().loc['mean']  # pandas DataFrame object
+        observed = self.sb_ratio().loc['mean'].values  # pandas DataFrame object
 
         predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)
 
