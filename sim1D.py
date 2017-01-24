@@ -52,7 +52,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         freqs = (round(float(
             observed.columns.values[0]), 2), round(float(
-            observed.columns.values[-1]), 2), observed.columns.values.__len__())
+            observed.columns.values[-1]), 2), len(observed.columns.values))
 
         predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)
 
