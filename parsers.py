@@ -81,6 +81,7 @@ def parse_litho(path):
     parse_litho returns site.litho.csv a tuple containing separate numpy.ndarry info.
     litho_names are the names of each layer - str
     litho_vals are the thickness (m), depth (m), vp (m/s) and vs (m/s), column-wise, respectively
+    Remember depth is representative of the bottom of the given layer
 
     :param path: string value containing full path to file to be parsed
 
@@ -93,7 +94,8 @@ def parse_litho(path):
             contents.append(line.strip('\r').strip('\n').split(','))
     litho_names = np.array(contents)[1:][:, 0]  # recast as np.ndarray for convenience
     litho_vals = np.array(contents)[1:].T[1:].T.astype(float)
-    thickness = np.array([litho_vals[:, 0][i] - litho_vals[:, 0][i - 1] for i in range(1, len(litho_vals))] + [1000])
+    thickness = np.array(
+        litho_vals[:, 0][0] + [litho_vals[:, 0][i] - litho_vals[:, 0][i - 1] for i in range(1, len(litho_vals))])
     litho_vals = np.concatenate((thickness.reshape(thickness.size, 1), litho_vals), axis=1)
 
     return litho_names, litho_vals
