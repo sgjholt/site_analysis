@@ -72,5 +72,28 @@ def parse_metadata(path, site):
     :return: dict object containing site metadata
     """
     headers = ['name', 'lat', 'lon', 'altitude', 'depth', 'prefecture', 'otherlat', 'otherlon', 'instrument']
-    site_info = pd.read_csv(path, index_col=0, header=None).loc['IWTH06'].values[0:9]
+    site_info = pd.read_csv(path, index_col=0, header=None).loc[site].values[0:9]
     return {header: site_info[i] for i, header in enumerate(headers)}
+
+
+def parse_litho(path):
+    """
+    parse_litho returns site.litho.csv a tuple containing separate numpy.ndarry info.
+    litho_names are the names of each layer - str
+    litho_vals are the thickness (m), depth (m), vp (m/s) and vs (m/s), column-wise, respectively
+
+    :param path: string value containing full path to file to be parsed
+
+    :return: tuple of np.ndarrays where tuple[0] is litho_names and tuple[1] is litho_vals
+
+    """
+    contents = []
+    with open(path, 'rt') as f:
+        for line in f:
+            contents.append(line.strip('\r').strip('\n').split(','))
+    litho_names = np.array(contents)[1:][:, 0]  # recast as np.ndarray for convenience
+    litho_vals = np.array(contents)[1:].T[1:].T.astype(float)
+    thickness = np.array([litho_vals[:, 0][i] - litho_vals[:, 0][i - 1] for i in range(1, len(litho_vals))] + [1000])
+    litho_vals = np.concatenate((thickness.reshape(thickness.size, 1), litho_vals), axis=1)
+
+    return litho_names, litho_vals

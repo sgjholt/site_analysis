@@ -38,9 +38,12 @@ def calc_density_profile(Vp):
 def binning(array, bin_width):
     max = array.max()
     min = array.min()
-    bins = np.linspace(min, max, max / bin_width)
+    bins = np.linspace(0, np.ceil(max), (np.ceil(max) / bin_width))
 
-    binned = np.zeros(len(bins))
+    binned = np.zeros(len(bins) - 1)
 
     for i, bin in enumerate(bins):
-        binned[i] = np.mean(array[(array >= bin - bin_width) & (array < bin)])
+        if i > 0:
+            binned[i - 1] = len(array[(array >= bin - bin_width) & (array < bin)])
+
+    return binned, bins[1:]

@@ -7,19 +7,21 @@ import numpy as np
 
 
 class Sim1D(sc.Site, sm.Site1D):
-    def __init__(self, name, working_directory, vel_file_dir=None):
+    def __init__(self, name, working_directory, litho=False, vel_file_dir=None):
 
         sc.Site.__init__(self, name, working_directory, vel_file_dir)
         sm.Site1D.__init__(self)
+        self.litho = litho
         self.__add_site_profile()
 
     def __add_site_profile(self):
+
         if not self.has_vel_profile:
             return None
 
-        vels = self.get_velocity_profile()
+        vels = self.get_velocity_profile(self.litho)
         for i, hl in enumerate(vels['thickness']):
-            self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 1, 1])
+            self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 100, 100])
 
     def elastic_forward_model(self, i_ang=0, elastic=True, plot_on=False, show=False, freqs=None):
 

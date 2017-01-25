@@ -10,7 +10,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from parsers import parse_ben_sb, read_kik_vel_file, parse_metadata
+from parsers import parse_ben_sb, read_kik_vel_file, parse_metadata, parse_litho
 from utils import calc_density_profile
 
 
@@ -52,7 +52,7 @@ class Site:
             self.vel_file_dir = vel_file_dir
         if metadata_path is not None:
             self.metadata_path = metadata_path
-        self.metadata = parse_metadata(self.metadata_path, self.site)
+        self.metadata = parse_metadata(self.metadata_path, name)
         if self.get_velocity_profile() is None:
             self.has_vel_profile = False
         else:
@@ -61,7 +61,7 @@ class Site:
             else:
                 pass
 
-    def get_velocity_profile(self):
+    def get_velocity_profile(self, litho=False):
         """
         get_velocity_profile() grabs the velocity profile provided by Kik-Net (if one exists) and returns numpy.ndarray
         object with N*M dimensions. Refer to read_kik_vel_file in parsers for detailed info.
@@ -76,15 +76,25 @@ class Site:
             - vel_profile[:,4] = Vs [m/s]
         """
         vel_profile = None
-        try:
-            vel_profile = read_kik_vel_file(self.vel_file_dir+self.site+'.dat')
-        except FileNotFoundError:
-            print('No velocity profile for '+self.site)
-            return vel_profile
-
         titles = ['thickness', 'depth', 'vp', 'vs']
 
-        vel = {titles[i]: vel_profile[:, i + 1] for i in range(len(titles))}
+        if not litho:  # load standard velocity model
+            try:
+                vel_profile = read_kik_vel_file(self.vel_file_dir + 'velocity_models/' + self.site + '.dat')
+            except FileNotFoundError:
+                print('No velocity profile for ' + self.site)
+                return vel_profile
+
+            vel = {titles[i]: vel_profile[:, i + 1] for i in range(len(titles))}
+
+        if litho:  # load custom lithology based model (defined by me)
+            try:
+                vel_profile = parse_litho(self.vel_file_dir + 'litho_vel_models/' + self.site + '.litho.csv')
+            except FileNotFoundError:
+                print('No velocity profile for ' + self.site)
+                return vel_profile
+
+            vel = {titles[i]: vel_profile[:, i] for i in range(len(titles))}
 
         vel.update({'rho': calc_density_profile(vel_profile[:, 3] / 1000) * 1000, 'rho_sig': 130})
 
