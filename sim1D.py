@@ -37,9 +37,20 @@ class Sim1D(sc.Site, sm.Site1D):
 
         shtf = self.ComputeSHTF(i_ang, elastic)
 
+        if self.litho:
+            model = 'lithology'
+        else:
+            model = 'standard'
+
+        if elastic:
+            types = 'Elastic'
+        else:
+            types = 'Anelastic'
+
+
         if plot_on:
-            plt.title('{0} : 1D Linear Elastic SHTF'.format(self.site))
-            plt.loglog(self.Freq, np.abs(shtf), label='SHTF')
+            plt.title('{0} : 1D Linear SHTF'.format(self.site))
+            plt.loglog(self.Freq, np.abs(shtf), label='SHTF: {0} - {1}'.format(types, model))
             plt.hlines(1, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('SHTF')
