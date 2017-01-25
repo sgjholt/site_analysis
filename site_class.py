@@ -86,6 +86,7 @@ class Site:
                 return vel_profile
 
             vel = {titles[i]: vel_profile[:, i + 1] for i in range(len(titles))}
+            vel.update({'rho': calc_density_profile(vel_profile[:, 3] / 1000) * 1000, 'rho_sig': 130})
 
         if litho:  # load custom lithology based model (defined by me)
             try:
@@ -94,9 +95,9 @@ class Site:
                 print('No velocity profile for ' + self.site)
                 return vel_profile
 
-            vel = {titles[i]: vel_profile[:, i] for i in range(len(titles))}
-
-        vel.update({'rho': calc_density_profile(vel_profile[:, 3] / 1000) * 1000, 'rho_sig': 130})
+            vel = {titles[i]: vel_profile[1][:, i] for i in range(len(titles))}
+            vel.update({'rho': calc_density_profile(vel_profile[1][:, 3] / 1000) * 1000, 'rho_sig': 130})
+            vel.update({'type': list(vel_profile[0])})
 
         return vel
 
