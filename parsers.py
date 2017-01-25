@@ -95,7 +95,7 @@ def parse_litho(path):
     litho_names = np.array(contents)[1:][:, 0]  # recast as np.ndarray for convenience
     litho_vals = np.array(contents)[1:].T[1:].T.astype(float)
     thickness = np.array(
-        litho_vals[:, 0][0] + [litho_vals[:, 0][i] - litho_vals[:, 0][i - 1] for i in range(1, len(litho_vals))])
+        [litho_vals[:, 0][0]] + [litho_vals[:, 0][i] - litho_vals[:, 0][i - 1] for i in range(1, len(litho_vals))])
     litho_vals = np.concatenate((thickness.reshape(thickness.size, 1), litho_vals), axis=1)
 
     return litho_names, litho_vals
