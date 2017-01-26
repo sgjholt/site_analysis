@@ -7,6 +7,7 @@ import numpy as np
 
 
 class Sim1D(sc.Site, sm.Site1D):
+
     def __init__(self, name, working_directory, litho=False, vel_file_dir=None):
 
         sc.Site.__init__(self, name, working_directory, vel_file_dir)
@@ -22,7 +23,8 @@ class Sim1D(sc.Site, sm.Site1D):
         vels = self.get_velocity_profile(self.litho)
         for i, hl in enumerate(vels['thickness']):
             self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 100, 100])
-        self.AddLayer(0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1])
+        if self.litho:  # add final half layer
+            self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
 
     def elastic_forward_model(self, i_ang=0, elastic=True, plot_on=False, show=False, freqs=None):
 
@@ -46,7 +48,6 @@ class Sim1D(sc.Site, sm.Site1D):
             types = 'Elastic'
         else:
             types = 'Anelastic'
-
 
         if plot_on:
             plt.title('{0} : 1D Linear SHTF'.format(self.site))
