@@ -75,7 +75,7 @@ class Sim1D(sc.Site, sm.Site1D):
             print('Misfit not available - no forward model.')
             return None  # return nothing to break out of function
 
-        log_residuals = np.log(predicted) - observed
+        log_residuals = np.log(predicted.reshape(1, len(predicted))[0]) - observed
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5
 
