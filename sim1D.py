@@ -80,11 +80,11 @@ class Sim1D(sc.Site, sm.Site1D):
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5
 
-        bin_log_resids = binning(log_residuals, freqs, 10)
+        bin_log_resids, bin_freqs = binning(log_residuals, freqs, 10)
 
         if plot_on:
             plt.title('{0} : Log Residuals - Log RMS Misfit: {1}.'.format(self.site, round(log_rms_misfit), 2))
-            plt.plot(self.Freq, bin_log_resids, 'ko', label='Residuals')
+            plt.plot(bin_freqs, bin_log_resids, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('Log Residuals')
