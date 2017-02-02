@@ -35,15 +35,33 @@ def calc_density_profile(Vp):
     return (1.6612 * Vp) - (0.4721 * Vp ** 2) + (0.0671 * Vp ** 3) - (0.0043 * Vp ** 4) + (0.000106 * Vp ** 5)
 
 
-def binning(array, bin_width):
-    max = array.max()
-    min = array.min()
-    bins = np.linspace(0, np.ceil(max), (np.ceil(max) / bin_width))
+def binning(array, freqs, bin_width, even_spaced=True):
+    """
 
-    binned = np.zeros(len(bins) - 1)
+    :param array:
+    :param freqs:
+    :param bin_width:
+    :param even_spaced:
+    :return:
+    """
 
-    for i, bin in enumerate(bins):
-        if i > 0:
-            binned[i - 1] = len(array[(array >= bin - bin_width) & (array < bin)])
+    if even_spaced:
+        while np.floor(freqs[-1]) % bin_width not in {0, 5}:
+            bin_width += 0.5
+            print(bin_width)
+        print('next optimal bin_width is {0}'.format(bin_width))
 
-    return binned, bins[1:]
+    bin_freqs = np.linspace(freqs[0], freqs[-1], len(freqs)/bin_width+1)
+
+    #bins = np.linspace(0, np.floor(max), (np.floor(max) / bin_width)+1)
+
+    binned = np.zeros(int(len(bin_freqs)))
+
+    for i, freq in enumerate(bin_freqs):
+        if freq == bin_freqs[0]:
+            binned[i] = np.mean(array[freqs[freq + bin_width / 2]])
+        elif freq == bin_freqs[-1]:
+            binned[i] = np.mean(array[freqs[freq - bin_width / 2]])
+        else:
+            binned[i] = np.mean(array[(freqs >= freq - bin_width/2) & (freqs < freq + bin_width/2)])
+    return binned, bin_freqs
