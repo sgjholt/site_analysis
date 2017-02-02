@@ -4,11 +4,12 @@ import site_class as sc
 import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import binning
+import itertools
+from utils import binning, pick_model
 
 
 class Sim1D(sc.Site, sm.Site1D):
-
+    model_space = []
     def __init__(self, name, working_directory, litho=False, vel_file_dir=None):
 
         sc.Site.__init__(self, name, working_directory, vel_file_dir)
@@ -92,3 +93,13 @@ class Sim1D(sc.Site, sm.Site1D):
             return log_residuals, log_rms_misfit
         if show:
             plt.show()
+
+    def grid_search(self):
+
+        self.model_space =
+        dimensions, indexes = model_space.shape
+        perms = itertools.product([x for x in range(indexes)], repeat=dimensions)
+
+        for i, perm in enumerate(perms):
+            model = pick_model(model_space, perm)
+

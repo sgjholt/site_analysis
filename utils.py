@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import random
-import matplotlib.pyplot as plt
 
 
 def rand_sites(sample_size):
@@ -38,11 +37,12 @@ def calc_density_profile(Vp):
 def binning(array, freqs, bin_width, even_spaced=True):
     """
 
-    :param array:
-    :param freqs:
-    :param bin_width:
-    :param even_spaced:
-    :return:
+    :param array: values to be binned (in the sense the mean value will be given) - numpy.ndarray
+    :param freqs: frequencies used to bin data
+    :param bin_width: the width of the bin in unit spacing between frequency values
+    :param even_spaced: automatically determines the best next best width to use for even bins if the one provided is
+        not adequate.
+    :return: tuple containing the binned values [0] and the bins [1]
     """
 
     if even_spaced:
@@ -65,3 +65,18 @@ def binning(array, freqs, bin_width, even_spaced=True):
         else:
             binned[i] = np.mean(array[(freqs >= freq - bin_width/2) & (freqs < freq + bin_width/2)])
     return binned, bin_freqs
+
+
+def pick_model(model_space, perm):
+    current_perm = []
+    for j, row in enumerate(model_space):
+        current_perm.append(row[perm[j]])
+    return np.array(current_perm)
+
+def define_model_space(original, variation_pct, total_units):
+
+    model_space = np.zeros((len(original), total_units))
+    for i, row in enumerate(original):
+        low = row - row/variation_pct
+        high = row + row/variation_pct
+        model_space[i] = np.concatenate(np.linspace(low, row, total_units/2), np.linspace(row, high, total_units/2)
