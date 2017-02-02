@@ -59,9 +59,9 @@ def binning(array, freqs, bin_width, even_spaced=True):
 
     for i, freq in enumerate(bin_freqs):
         if freq == bin_freqs[0]:
-            binned[i] = np.mean(array[freqs[freq + bin_width / 2]])
+            binned[i] = np.mean(array[freqs < freq + bin_width / 2])
         elif freq == bin_freqs[-1]:
-            binned[i] = np.mean(array[freqs[freq - bin_width / 2]])
+            binned[i] = np.mean(array[freqs >= freq - bin_width / 2])
         else:
             binned[i] = np.mean(array[(freqs >= freq - bin_width/2) & (freqs < freq + bin_width/2)])
     return binned, bin_freqs
