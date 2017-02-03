@@ -5,7 +5,7 @@ import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 import numpy as np
 import itertools
-from utils import binning, pick_model
+from utils import binning, pick_model, define_model_space
 
 
 class Sim1D(sc.Site, sm.Site1D):
@@ -94,12 +94,17 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def grid_search(self):
+    def random_search(self, pct_variation, steps, iterations):
 
-        self.model_space =
-        dimensions, indexes = model_space.shape
-        perms = itertools.product([x for x in range(indexes)], repeat=dimensions)
+        self.model_space = define_model_space(self.GetAttribute('Vs'), pct_variation, steps)
 
-        for i, perm in enumerate(perms):
-            model = pick_model(model_space, perm)
+        dimensions, indexes = self.model_space.shape
+        random_choices = np.random.randint(0, indexes, (iterations, dimensions))
+        for i, row in enumerate(random_choices):
 
+
+        # perms = itertools.product([x for x in range(indexes)], repeat=dimensions)
+
+        # for i, perm in enumerate(perms):
+        #    model = pick_model(model_space, perm)
+        return None
