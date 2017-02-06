@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import random
+import contextlib
+import os
 
 
 
@@ -94,3 +96,25 @@ def define_model_space(original, variation_pct, steps):
 
     return np.concatenate((np.matrix.round(model_space, 0), np.matrix.round(
         np.logspace(np.log10(50), np.log10(2), steps+1, base=10), 2)[None, :]))
+
+
+def silent_remove(filename):
+    """
+    The silent_remove() function uses the os.remove method to remove a
+    given file. The contextlib module suppresses the error given if the file
+    does not exist, allowing the current run to continue to execute.
+
+    USAGE: silent_remove(path+filename)
+    parent_dir = /home/directory_of_interest/
+    fname = "file.txt"
+    E.G. - silent_remove(parent_dir + fname)
+    """
+    with contextlib.suppress(FileNotFoundError):
+        os.remove(filename)
+
+
+def df_cols(dimensions):
+    cols = ['v'+str(num+1) for num in range(dimensions)]
+    [cols.append(title) for title in ('qs', 'rms')]
+    return cols
+
