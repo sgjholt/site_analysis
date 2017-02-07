@@ -143,9 +143,9 @@ class Sim1D(sc.Site, sm.Site1D):
                 self.Mod['Vs'][j] = var
                 self.Mod['Qs'][j] = model[-1]
 
-        vp = self.Mod['Vs'] / self.vp_vs   # use vp/vs to calculate Vp values such that physical properties are
+        vp = self.Mod['Vs'] * self.vp_vs   # use vp/vs to calculate Vp values such that physical properties are
                                            # consistent in each layer
-        dn = calc_density_profile(np.array(self.Mod['Vp']))  # calculate density based on Vp
+        dn = calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000  # calculate density based on Vp
         for j, var in enumerate(vp):  # assign values of vp and density to site
             self.Mod['Vp'][j] = var  # vp values
             self.Mod['Dn'][j] = dn[j]  # density values
