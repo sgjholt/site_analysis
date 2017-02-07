@@ -22,7 +22,8 @@ class Sim1D(sc.Site, sm.Site1D):
         self.__add_site_profile()
         if run_dir is not None:
             self.run_dir = run_dir
-
+        if self.litho:
+            self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
 
     def __add_site_profile(self):
 
