@@ -6,13 +6,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import itertools
-from utils import binning, pick_model, define_model_space, silent_remove, df_cols
+from utils import binning, pick_model, define_model_space, silent_remove, df_cols, calc_density_profile
 
 
 class Sim1D(sc.Site, sm.Site1D):
     model_space = []
     run_dir = ''
     simulation_path = ''
+
     def __init__(self, name, working_directory, run_dir=None, litho=False, vel_file_dir=None):
 
         sc.Site.__init__(self, name, working_directory, vel_file_dir)
@@ -21,6 +22,7 @@ class Sim1D(sc.Site, sm.Site1D):
         self.__add_site_profile()
         if run_dir is not None:
             self.run_dir = run_dir
+
 
     def __add_site_profile(self):
 
@@ -99,8 +101,8 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def random_search(self, pct_variation, steps, iterations, name, elastic=False):
-
+    def uniform_random_search(self, pct_variation, steps, iterations, name, elastic=False):
+        # UNFINISHED
         if not name.endswith('.txt'):  # in case you forget to add it
             name.join('.txt')
 
@@ -117,17 +119,42 @@ class Sim1D(sc.Site, sm.Site1D):
         for i, row in enumerate(random_choices):
             realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
 
-
         results = pd.DataFrame(columns=df_cols(dimensions=dimensions))  # build pd DataFrame to store results
         results.index.name = 'iteration'
 
         # run original model
         _, rms = self.misfit(elastic=elastic)
-        results.loc[0] = self.Amp['Vs'].tolist() + [10] + [rms]
+        results.loc[0] = self.Mod['Vs'].tolist() + [10] + [rms]
 
         for i, model in enumerate(realisations):
-            self.
-            results.loc[i+1] = model.
+            self.__modify_site_model(model)
+            self.misfit(elastic=elastic)
+            results.loc[i + 1] = model.tolist() + [rms]
+
+    def modify_site_model(self, model):
+        """
+        This function will modify the site model based on a specified Vs profile plus Qs value (model[-1])
+
+        :param model: np.ndarray object containing Vs values in m/s model[:-1] and model[-1] is a Qs value
+        :return: None - this is an inplace method
+        """
+        for j, var in enumerate(model):  # assign vs values given in model to site
+            if j != len(model)-1:
+                self.Mod['Vs'][j] = var
+                self.Mod['Qs'][j] = model[-1]
+
+        vp = self.Mod['Vs'] / self.vp_vs   # use vp/vs to calculate Vp values such that physical properties are
+                                           # consistent in each layer
+        dn = calc_density_profile(self.Mod['Vp'])  # calculate density based on Vp
+        for j, var in enumerate(vp):  # assign values of vp and density to site
+            self.Mod['Vp'][j] = var  # vp values
+            self.Mod['Dn'][j] = dn[j]  # density values
+
+        if self.litho:  # extra layer to consider - added half layer at base
+            for key in ['Vs', 'Vp', 'Dn']:
+                self.Mod[key][-1] = self.Mod[key][-2]  # make sure half layer = layer above (Thompson, 2012)
+
+
 
 
 

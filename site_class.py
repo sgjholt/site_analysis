@@ -43,6 +43,7 @@ class Site:
     metadata_path = '/data/share/Japan/SiteInfo/sitepub_kik_en.csv'
     metadata = {}
     has_vel_profile = True
+    vp_vs = None
 
     def __init__(self, name, working_directory, vel_file_dir=None, metadata_path=None):
 
@@ -60,6 +61,9 @@ class Site:
                 self.has_vel_profile = False
             else:
                 pass
+        if self.has_vel_profile:
+            _, _, _, vp, vs = self.get_velocity_profile()
+            vp_vs = vp/vs
 
     def get_velocity_profile(self, litho=False):
         """
