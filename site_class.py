@@ -62,8 +62,8 @@ class Site:
             else:
                 pass
         if self.has_vel_profile:
-            _, _, _, vp, vs = self.get_velocity_profile()
-            vp_vs = vp/vs
+            prof = self.get_velocity_profile()
+            vp_vs = prof[-2]/prof[-1]
 
     def get_velocity_profile(self, litho=False):
         """
