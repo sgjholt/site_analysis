@@ -47,7 +47,7 @@ class Sim1D(sc.Site, sm.Site1D):
         else:
             self.GenFreqAx(freqs[0], freqs[1], freqs[2])
 
-        shtf = self.ComputeSHTF(i_ang, elastic)
+        self.ComputeSHTF(i_ang, elastic)
 
         if self.litho:
             model = 'lithology'
@@ -61,7 +61,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         if plot_on:
             plt.title('{0} : 1D Linear SHTF'.format(self.site))
-            plt.loglog(self.Amp['Freq'], np.abs(shtf), label='SHTF: {0} - {1}'.format(types, model))
+            plt.loglog(self.Amp['Freq'], np.abs(self.Amp['Shtf']), label='SHTF: {0} - {1}'.format(types, model))
             plt.hlines(1, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('SHTF')
@@ -77,7 +77,7 @@ class Sim1D(sc.Site, sm.Site1D):
             self.sb_ratio().columns.values[0]), 2), round(float(
             self.sb_ratio().columns.values[-1]), 2), len(self.sb_ratio().columns.values))
 
-        observed = self.sb_ratio().loc['mean'].values  # pandas DataFrame object
+        observed = self.sb_ratio().loc['mean'].values   # pandas DataFrame object
 
         predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)
 
