@@ -119,17 +119,30 @@ def df_cols(dimensions):
     return cols
 
 
+def dest_freq(bh_depth, vel_prof):
+    """
+    Calculates the destructive frequency expected at a given site.
+    See Cadet et al., 2011 : http://www.sciencedirect.com/science/article/pii/S0267726110001752
+    :param bh_depth: depth of the borehole instrument (m) - type int/float
+    :param vel_prof: site velocity profile [vector] (m/s) - type np.ndarray
+    :return: fundamental frequency (Hz)
+    """
+    mean_vel = np.mean(vel_prof[0:len(vel_prof)-2])
+    return mean_vel/(4*bh_depth)
+
+
 def downgoing_transform_func(f, fd, A=1.8, B=0.8, sig=0.15):
     """
     Function to remove the effect of the artificial increase in relative amplitude in Surface/Borehole ratios.
-    See Cadet et al, 2011
+    Due to destructive interference effects at depth.
+    See Cadet et al., 2011 : http://www.sciencedirect.com/science/article/pii/S0267726110001752
 
-    :param f:
-    :param fd:
-    :param A:
-    :param B:
-    :param sig:
-    :return:
+    :param f: frequencies to build calculate transfer function
+    :param fd: expected destructive frequency for your site
+    :param A: constant (set 1.8 as recommended by Cadet et al., 2011)
+    :param B: constant (set 0.8 as recommended by Cadet et al., 2011)
+    :param sig: constant (set 0.15 as recommended by Cadet et al., 2011)
+    :return: transfer function
     """
 
     c1 = 1 + ((B * np.arctan(f / fd)) / (np.pi / 2))
