@@ -152,3 +152,5 @@ def downgoing_transform_func(f, fd, A=1.8, B=0.8, sig=0.15):
     c1 = 1 + ((B * np.arctan(f / fd)) / (np.pi / 2))
     c2 = 1 + (A - 1) * np.exp(-(f / fd - 1) ** 2 / (2 * sig) ** 2)
     return c1*c2
+
+downgoing_transform_func(np.array(self.sb_ratio().columns.values, dtype=float), dest_freq(self.metadata['depth'], self.get_velocity_profile(litho=self.litho)))

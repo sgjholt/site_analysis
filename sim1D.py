@@ -73,11 +73,14 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def misfit(self, i_ang=0, elastic=True, plot_on=False, show=False):
 
-        freqs = (round(float(
-            self.sb_ratio().columns.values[0]), 2), round(float(
-            self.sb_ratio().columns.values[-1]), 2), len(self.sb_ratio().columns.values))
+        sb_table = self.sb_ratio()
 
-        observed = self.sb_ratio().loc['mean'].values   # pandas DataFrame object
+        freqs = (round(float(
+            sb_table.columns.values[0]), 2), round(float(
+                sb_table.columns.values[-1]), 2), len(sb_table.columns.values))
+
+        observed = sb_table.loc['mean'].values   # observed (mean of ln values) (normally distributed in logspace)
+        std = sb_table.loc['std'].values  # std of ln values
 
         predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)
 
@@ -85,7 +88,7 @@ class Sim1D(sc.Site, sm.Site1D):
             print('Misfit not available - no forward model.')
             return None  # return nothing to break out of function
 
-        log_residuals = np.log(predicted.reshape(1, len(predicted))[0]) - observed
+        log_residuals = (np.log(predicted.reshape(1, len(predicted))[0]) - observed)/std  # weighted by stdv
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5
 

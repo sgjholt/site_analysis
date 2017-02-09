@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from parsers import parse_ben_sb, read_kik_vel_file, parse_metadata, parse_litho
-from utils import calc_density_profile
+from utils import calc_density_profile, dest_freq, downgoing_transform_func
 
 
 # ---------------------------------classes--------------------------------------#
@@ -105,8 +105,21 @@ class Site:
 
         return vel
 
-    def sb_ratio(self):
-        return pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
+    def sb_ratio(self, cadet_correct=False, prof=None, litho=False):
+        sb = pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
+
+        if prof is not None:
+            profile = prof
+        else:
+            profile = self.get_velocity_profile(litho=litho)
+
+        if cadet_correct:  # apply correction detailed in Cadet 2011 - see function
+            cor = downgoing_transform_func(np.array(sb.columns.values, dtype=float), dest_freq(
+                self.metadata['depth'], profile))
+            sb *= cor
+            sb.loc['count'] /= cor
+
+        return sb
 
     def plot_sb(self, stdv=None, pctile=None, show=True):
         """
@@ -182,6 +195,8 @@ class Site:
 
     def add_metadata(self, metadata_dict):
         self.metadata.update(metadata_dict)
+
+
 
 # ---------------------------------functions--------------------------------------#
 
