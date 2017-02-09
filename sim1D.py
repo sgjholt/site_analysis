@@ -30,7 +30,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if not self.has_vel_profile: # printing is handled in the Site class to warn the user - just return None
             return None
 
-        vels = self.get_velocity_profile(self.litho)
+        vels = self.get_velocity_profile(litho=self.litho)
         for i, hl in enumerate(vels['thickness']):
             self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 10, 10])
         if self.litho:  # add final half layer

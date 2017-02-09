@@ -119,15 +119,19 @@ def df_cols(dimensions):
     return cols
 
 
-def dest_freq(bh_depth, vel_prof):
+def dest_freq(bh_depth, prof):
     """
     Calculates the destructive frequency expected at a given site.
     See Cadet et al., 2011 : http://www.sciencedirect.com/science/article/pii/S0267726110001752
     :param bh_depth: depth of the borehole instrument (m) - type int/float
-    :param vel_prof: site velocity profile [vector] (m/s) - type np.ndarray
+    :param prof: site profile - dict - see site_class.py method - self.get_velocity_profile()
     :return: fundamental frequency (Hz)
     """
-    mean_vel = np.mean(vel_prof[0:len(vel_prof)-2])
+    if prof['depth'][-1] == bh_depth:  # if the depth of the final layer is the borehole depth (unlikely)
+        mean_vel = prof['vs'][:-1].mean()  # mean vel above bh depth is mean of every vs above that point
+    else:  # the last layer depth is > bh depth - take mean of all vs - bh exists in that last layer
+        mean_vel = prof['vs'].mean()
+
     return mean_vel/(4*bh_depth)
 
 
