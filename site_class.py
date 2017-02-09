@@ -121,12 +121,12 @@ class Site:
 
         return sb
 
-    def plot_sb(self, stdv=None, pctile=None, show=True):
+    def plot_sb(self, stdv=None, pctile=None, show=True, cadet_correct=False):
         """
         The plot_sb method allows you to plot the S/B ratio calculated for the Site class object.
         USAGE: Site.plot_sb(stdv=tuple of ints, pctile=25, 50 or 75% as tuple of str , show=True)
         """
-        table = self.sb_ratio()
+        table = self.sb_ratio(cadet_correct=cadet_correct)
         plt.loglog(table.columns.values, np.exp(table.loc['mean']), 'k', label='mean')
         plt.hlines(1, float(table.columns.values[0]), float(table.columns.values[-1]), colors='k', linestyles='dashed')
         plt.title(self.site+': S/B Ratio - {0} records'.format(int(table.loc['count'][0])))
