@@ -105,7 +105,7 @@ class Site:
 
         return vel
 
-    def sb_ratio(self, cadet_correct=False, prof=None, litho=False):
+    def sb_ratio(self, mod_factor=None, cadet_correct=False, prof=None, litho=False):
         sb = pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
 
         if prof is not None:
@@ -117,16 +117,19 @@ class Site:
             cor = downgoing_transform_func(np.array(sb.columns.values, dtype=float), dest_freq(
                 self.metadata['depth'], profile))
             sb *= cor
-            sb.loc['count'] /= cor
+            #sb.loc['count'] /= cor
+
+        if mod_factor is not None:
+            sb *= mod_factor
 
         return sb
 
-    def plot_sb(self, stdv=None, pctile=None, show=True, cadet_correct=False):
+    def plot_sb(self, stdv=None, pctile=None, show=True, cadet_correct=False, mod_factor=None):
         """
         The plot_sb method allows you to plot the S/B ratio calculated for the Site class object.
         USAGE: Site.plot_sb(stdv=tuple of ints, pctile=25, 50 or 75% as tuple of str , show=True)
         """
-        table = self.sb_ratio(cadet_correct=cadet_correct)
+        table = self.sb_ratio(mod_factor=mod_factor, cadet_correct=cadet_correct)
         plt.loglog(table.columns.values, np.exp(table.loc['mean']), 'k', label='mean')
         plt.hlines(1, float(table.columns.values[0]), float(table.columns.values[-1]), colors='k', linestyles='dashed')
         plt.title(self.site+': S/B Ratio - {0} records'.format(int(table.loc['count'][0])))
@@ -195,7 +198,6 @@ class Site:
 
     def add_metadata(self, metadata_dict):
         self.metadata.update(metadata_dict)
-
 
 
 # ---------------------------------functions--------------------------------------#
