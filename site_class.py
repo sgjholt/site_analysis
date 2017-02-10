@@ -117,10 +117,11 @@ class Site:
             cor = downgoing_transform_func(np.array(sb.columns.values, dtype=float), dest_freq(
                 self.metadata['depth'], profile))
             sb *= cor
-            #sb.loc['count'] /= cor
+            sb.loc['count'] /= cor
 
         if mod_factor is not None:
             sb *= mod_factor
+            sb.loc['count'] /= mod_factor
 
         return sb
 
