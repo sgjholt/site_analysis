@@ -90,18 +90,22 @@ class Sim1D(sc.Site, sm.Site1D):
 
         log_residuals = (np.log(predicted.reshape(1, len(predicted))[0]) - observed)/std  # weighted by stdv
 
-        log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5
+        log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5 # amplitude quality of fit
+
+        x_cor = np.correlate(
+            observed, np.log(predicted.reshape(1, len(predicted))[0]), 'full').argmax() - (
+                np.correlate(observed, np.log(predicted.reshape(1, len(predicted))[0]), 'full').__len__()-1)/2
 
         bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)
 
         if plot_on:
             plt.title('{0} : Log Residuals - Log RMS Misfit: {1}.'.format(self.site, round(log_rms_misfit), 2))
-            plt.plot(bin_freqs, bin_log_resids, 'ko', label='Residuals')
+            plt.semilogx(bin_freqs, bin_log_resids, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('Log Residuals')
         else:
-            return log_residuals, log_rms_misfit
+            return log_residuals, log_rms_misfit, x_cor
         if show:
             plt.show()
 
