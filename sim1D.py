@@ -67,13 +67,13 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.ylabel('SHTF')
 
         else:
-            return np.abs(shtf)
+            return np.abs(self.Amp['Shtf'])
         if show:
             plt.show()
 
-    def misfit(self, i_ang=0, elastic=True, plot_on=False, show=False):
+    def misfit(self, i_ang=0, elastic=True, plot_on=False, show=False, cadet_correct=False):
 
-        sb_table = self.sb_ratio()
+        sb_table = self.sb_ratio(cadet_correct=cadet_correct)
 
         freqs = (round(float(
             sb_table.columns.values[0]), 2), round(float(
