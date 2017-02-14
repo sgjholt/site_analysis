@@ -152,4 +152,9 @@ def downgoing_transform_func(f, fd, A=1.8, B=0.8, sig=0.15):
     c2 = 1 + (A - 1) * np.exp(-(f / fd - 1) ** 2 / (2 * sig) ** 2)
     return 1/(c1*c2)
 
+# import scipy.find_peaks_cwt as fp
+# sb = self.sb_ratio()
+# sb_mean = sb.loc['mean']
+#
 
+# plt.plot(np.array(fp(sb_mean, np.arange(1,11)))*0.01, np.exp(sb_mean[fp(sb_mean, np.arange(1,11))]), 'r*')

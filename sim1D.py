@@ -88,9 +88,10 @@ class Sim1D(sc.Site, sm.Site1D):
             print('Misfit not available - no forward model.')
             return None  # return nothing to break out of function
 
-        log_residuals = (np.log(predicted.reshape(1, len(predicted))[0]) - observed)/std  # weighted by stdv
+        log_residuals = (np.log(predicted.reshape(1, len(predicted))[0]) - observed)/std# weighted by stdv
+        log_residuals /= log_residuals.max()  # normalise between 0-1
 
-        log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5 # amplitude quality of fit
+        log_rms_misfit = (np.sum(log_residuals ** 2 / len(log_residuals))) ** 0.5  # amplitude quality of fit
 
         x_cor = np.correlate(
             observed, np.log(predicted.reshape(1, len(predicted))[0]), 'full').argmax() - (
