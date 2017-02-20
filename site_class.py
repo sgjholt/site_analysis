@@ -174,7 +174,7 @@ class Site:
         else:
             pass
 
-    def qc(self, plot_on=True, show=False):
+    def qc(self, plot_on=True, cadet_correct=False, show=False):
         """
         The method qc allows visual (and soon statistical) comparison of mine and Ben's empirical S/B ratios
          calculated for the Kik-Net network.
@@ -190,7 +190,7 @@ class Site:
             if plot_on:
                 ben = parse_ben_sb('/home/sgjholt/site_ave/', code)
                 plt.loglog(ben[:, 0], ben[:, 1], 'r', label='Ben')
-                self.plot_sb(stdv=(1,), show=show)
+                self.plot_sb(stdv=(1,), cadet_correct=cadet_correct, show=show)
 
             else:
                 pass
