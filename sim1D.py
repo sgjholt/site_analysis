@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import itertools
-from utils import binning, pick_model, define_model_space, silent_remove, df_cols, calc_density_profile
+from utils import binning, pick_model, define_model_space, silent_remove, df_cols, calc_density_profile, exp_cdf
 
 
 class Sim1D(sc.Site, sm.Site1D):
@@ -71,7 +71,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def misfit(self, i_ang=0, elastic=True, plot_on=False, show=False, cadet_correct=False):
+    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, elastic=True, plot_on=False, show=False, cadet_correct=False):
 
         sb_table = self.sb_ratio(cadet_correct=cadet_correct)
 
@@ -97,6 +97,8 @@ class Sim1D(sc.Site, sm.Site1D):
             observed, np.log(predicted.reshape(1, len(predicted))[0]), 'full').argmax() - (
                 np.correlate(observed, np.log(predicted.reshape(1, len(predicted))[0]), 'full').__len__()-1)/2
 
+        total_misfit = log_rms_misfit*weights[0] + exp_cdf(x_cor, lam=lam)*weights[1]
+
         bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)
 
         if plot_on:
@@ -106,7 +108,7 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('Log Residuals')
         else:
-            return log_residuals, log_rms_misfit, x_cor
+            return log_residuals, log_rms_misfit, x_cor, total_misfit
         if show:
             plt.show()
 

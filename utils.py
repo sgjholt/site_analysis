@@ -152,6 +152,17 @@ def downgoing_transform_func(f, fd, A=1.8, B=0.8, sig=0.15):
     c2 = 1 + (A - 1) * np.exp(-(f / fd - 1) ** 2 / (2 * sig) ** 2)
     return 1/(c1*c2)
 
+
+def exp_cdf(x, lam):
+    """
+    CDF of exponential distribution for given parameters x and lam(bda)
+
+    :param x: Variable(s) - int/float/np.ndarray
+    :param lam: Defines shape of CDF - int/float
+    :return: Normalised CDF value for given x and lambda - float/np.ndarray
+    """
+    return 1-np.exp(-lam*x)
+
 # import scipy.find_peaks_cwt as fp
 # sb = self.sb_ratio()
 # sb_mean = sb.loc['mean']
