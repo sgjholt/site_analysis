@@ -97,7 +97,7 @@ class Sim1D(sc.Site, sm.Site1D):
             observed, np.log(predicted.reshape(1, len(predicted))[0]), 'full').argmax() - (
                 np.correlate(observed, np.log(predicted.reshape(1, len(predicted))[0]), 'full').__len__()-1)/2
 
-        total_misfit = log_rms_misfit*weights[0] + exp_cdf(x_cor, lam=lam)*weights[1]
+        total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor)/0.01, lam=lam)*weights[1]
 
         bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)
 
