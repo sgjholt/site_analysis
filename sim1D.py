@@ -5,8 +5,8 @@ import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import itertools
 from utils import binning, pick_model, define_model_space, silent_remove, df_cols, calc_density_profile, exp_cdf
+# import itertools
 
 
 class Sim1D(sc.Site, sm.Site1D):
@@ -71,18 +71,31 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, elastic=True, plot_on=False, show=False, cadet_correct=False):
+    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, x_cor_range=(0, 25), elastic=True, plot_on=False, show=False, cadet_correct=False):
+        """
 
-        sb_table = self.sb_ratio(cadet_correct=cadet_correct)
-
-        freqs = (round(float(
-            sb_table.columns.values[0]), 2), round(float(
-                sb_table.columns.values[-1]), 2), len(sb_table.columns.values))
+        :param weights: weights to assign to components of misfit e.g. weights[0] = amplitude misfit weight and
+                            weights[1] = frequency misfit weight. - tuple (int/float, int/float)
+        :param lam: shape of exponential CDF: higher number = higher penalty for larger frequency misfit - int/float
+        :param i_ang: incident angle of up-going wave from bedrock for forward model - int/float
+        :param x_cor_range: range of values used for x_correlation - take values past unity part of response
+                               (ratio ~= 1) to avoid -ve bias in correlation. - tuple (int/float, int/float)
+        :param elastic: perform elastic or anelastic simulation - bool - True/False
+        :param plot_on: plot waveform in matplotlib (background) - bool - True/False
+        :param show: show matplotlib plot - bool- True/False
+        :param cadet_correct: Apply the correction to SB ratio detailed in Cadet et al. (2012) - bool - True/False
+        :return: None: if plot_on == True: else: tuple (log_resids, log_misfit, x_cor, total_misfit):
+        """
+        dt = 0.01  # time delta - ***TEMPORARY - NEEDS TO BE MORE FLEXIBLE ***
+        sb_table = self.sb_ratio(cadet_correct=cadet_correct)  # get the pandas table for sb site sb ratio
 
         observed = sb_table.loc['mean'].values   # observed (mean of ln values) (normally distributed in logspace)
         std = sb_table.loc['std'].values  # std of ln values
 
-        predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)
+        freqs = (round(float(
+            sb_table.columns.values[0]), 2), round(float(
+                sb_table.columns.values[-1]), 2), len(sb_table.columns.values))  # specify frequencies for forward model
+        predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)  # calc forward model
 
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
@@ -92,17 +105,18 @@ class Sim1D(sc.Site, sm.Site1D):
         log_residuals /= np.abs(log_residuals).max()  # normalise between 0-1
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5  # amplitude quality of fit
-
-        x_cor = np.correlate(
-            observed, np.log(predicted.reshape(1, len(predicted))[0]), 'full').argmax() - (
-                np.correlate(observed, np.log(predicted.reshape(1, len(predicted))[0]), 'full').__len__()-1)/2
-
-        total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor)/0.01, lam=lam)*weights[1]
-
-        bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)
+        # re-sample the predicted and observed signals to the range specified for x_correlation
+        x_cor_p = np.log(predicted.reshape(1, len(predicted))[0][(freqs >= x_cor_range[0]) & (freqs <= x_cor_range[1])])
+        x_cor_o = observed[(freqs >= x_cor_range[0]) & (freqs <= x_cor_range[1])]
+        # Perform the x_correlation - take arg max and subtract half the total length to get the 'frequency lag'
+        x_cor = np.correlate(x_cor_o, x_cor_p, 'full')  # do x_corr, store in memory - efficient for large sims
+        x_cor = (x_cor.argmax() - (len(x_cor)-1)/2)/dt  # len -1 because the signal index begins counting at 0
+        # Calculate total misfit in both amplitude and frequency (fitting in both dimensions)
+        total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor), lam=lam)*weights[1]
 
         if plot_on:
-            plt.title('{0} : Log Residuals - Log RMS Misfit: {1}.'.format(self.site, round(log_rms_misfit), 2))
+            bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)  # bin only when plotting
+            plt.title('{0} : Log Residuals - Misfit: {1}.'.format(self.site, round(total_misfit), 2))
             plt.semilogx(bin_freqs, bin_log_resids, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
