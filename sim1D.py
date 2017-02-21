@@ -91,11 +91,9 @@ class Sim1D(sc.Site, sm.Site1D):
 
         observed = sb_table.loc['mean'].values   # observed (mean of ln values) (normally distributed in logspace)
         std = sb_table.loc['std'].values  # std of ln values
-
-        freqs = (round(float(
-            sb_table.columns.values[0]), 2), round(float(
-                sb_table.columns.values[-1]), 2), len(sb_table.columns.values))  # specify frequencies for forward model
-        predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)  # calc forward model
+        _freqs = sb_table.columns.values
+        freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
+        predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)  # calc fwd model
 
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
@@ -106,8 +104,8 @@ class Sim1D(sc.Site, sm.Site1D):
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5  # amplitude quality of fit
         # re-sample the predicted and observed signals to the range specified for x_correlation
-        x_cor_p = np.log(predicted.reshape(1, len(predicted))[0][(freqs >= x_cor_range[0]) & (freqs <= x_cor_range[1])])
-        x_cor_o = observed[(freqs >= x_cor_range[0]) & (freqs <= x_cor_range[1])]
+        x_cor_p = np.log(predicted.reshape(1, len(predicted))[0][(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])])
+        x_cor_o = observed[(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])]
         # Perform the x_correlation - take arg max and subtract half the total length to get the 'frequency lag'
         x_cor = np.correlate(x_cor_o, x_cor_p, 'full')  # do x_corr, store in memory - efficient for large sims
         x_cor = (x_cor.argmax() - (len(x_cor)-1)/2)/dt  # len -1 because the signal index begins counting at 0
