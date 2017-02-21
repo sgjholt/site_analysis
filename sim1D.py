@@ -114,7 +114,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         if plot_on:
             bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)  # bin only when plotting
-            plt.title('{0} : Log Residuals - Misfit: {1}.'.format(self.site, round(total_misfit), 2))
+            plt.title('{0} : Log Residuals - Misfit: {1}.'.format(self.site, round(total_misfit), 5))
             plt.semilogx(bin_freqs, bin_log_resids, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
