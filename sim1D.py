@@ -108,7 +108,7 @@ class Sim1D(sc.Site, sm.Site1D):
         x_cor_o = observed[(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])]
         # Perform the x_correlation - take arg max and subtract half the total length to get the 'frequency lag'
         x_cor = np.correlate(x_cor_o, x_cor_p, 'full')  # do x_corr, store in memory - efficient for large sims
-        x_cor = (x_cor.argmax() - (len(x_cor)-1)/2)/dt  # len -1 because the signal index begins counting at 0
+        x_cor = (x_cor.argmax() - (len(x_cor)-1)/2)*dt  # len -1 because the signal index begins counting at 0
         # Calculate total misfit in both amplitude and frequency (fitting in both dimensions)
         total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor), lam=lam)*weights[1]
 
