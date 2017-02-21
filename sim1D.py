@@ -91,7 +91,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         observed = sb_table.loc['mean'].values   # observed (mean of ln values) (normally distributed in logspace)
         std = sb_table.loc['std'].values  # std of ln values
-        _freqs = sb_table.columns.values
+        _freqs = sb_table.columns.values.astype(float)  # str by default
         freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
         predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)  # calc fwd model
 
