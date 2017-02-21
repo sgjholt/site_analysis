@@ -149,6 +149,7 @@ class Sim1D(sc.Site, sm.Site1D):
         # run original model
         _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct, weights=weights,
                                                       lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
+        print("Iteration:{0}-Model:{1}-Misfit:{2}".format(0, self.Mod['Vs']+[self.Mod['Qs'][0]], total_mis))
         # store result in pandas data frame
         results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis]
         # loop over the model realisations picked at random and calculate misfit
@@ -160,7 +161,7 @@ class Sim1D(sc.Site, sm.Site1D):
                                                           lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
             # store result in data frame
             results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis]
-            print("Iteration:{0}-Model:{1}-Misfit:{2}".format(i, model, total_mis))
+            print("Iteration:{0}-Model:{1}-Misfit:{2}".format(i+1, model, total_mis))
 
         if save:  # save the file as csv
             results.to_csv(self.simulation_path+'.csv')
