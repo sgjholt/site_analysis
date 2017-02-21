@@ -27,7 +27,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def __add_site_profile(self):
 
-        if not self.has_vel_profile: # printing is handled in the Site class to warn the user - just return None
+        if not self.has_vel_profile:  # printing is handled in the Site class to warn the user - just return None
             return None
 
         vels = self.get_velocity_profile(litho=self.litho)
@@ -77,7 +77,7 @@ class Sim1D(sc.Site, sm.Site1D):
         :param weights: weights to assign to components of misfit e.g. weights[0] = amplitude misfit weight and
                             weights[1] = frequency misfit weight. - tuple (int/float, int/float)
         :param lam: shape of exponential CDF: higher number = higher penalty for larger frequency misfit - int/float
-        :param i_ang: incident angle of up-going wave from bedrock for forward model - int/float
+        :param i_ang: incident angle (radians) of up-going wave from bedrock for forward model - int/float
         :param x_cor_range: range of values used for x_correlation - take values past unity part of response
                                (ratio ~= 1) to avoid -ve bias in correlation. - tuple (int/float, int/float)
         :param elastic: perform elastic or anelastic simulation - bool - True/False
@@ -124,10 +124,11 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def uniform_random_search(self, pct_variation, steps, iterations, name, elastic=False):
+    def uniform_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
+                              x_cor_range=(0, 25), elastic=True, cadet_correct=False, save=False):
         # UNFINISHED
-        if not name.endswith('.txt'):  # in case you forget to add it
-            name.join('.txt')
+        if not name.endswith('.usim'):  # in case you forget to add it
+            name.join('.usim')
 
         self.simulation_path = self.run_dir + name
 
@@ -146,13 +147,25 @@ class Sim1D(sc.Site, sm.Site1D):
         results.index.name = 'iteration'
 
         # run original model
-        _, rms = self.misfit(elastic=elastic)
-        results.loc[0] = self.Mod['Vs'].tolist() + [10] + [rms]
-
+        _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct, weights=weights,
+                                                      lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
+        # store result in pandas data frame
+        results.loc[0] = self.Mod['Vs'].tolist() + self.Mod['Qs'][0] + [amp_mis, freq_mis, total_mis]
+        # loop over the model realisations picked at random and calculate misfit
         for i, model in enumerate(realisations):
-            self.__modify_site_model(model)
-            self.misfit(elastic=elastic)
-            results.loc[i + 1] = model.tolist() + [rms]
+            self.modify_site_model(model)  # change the model in Valerio's SiteModel class
+
+            # calculate misfit
+            _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct, weights=weights,
+                                                          lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
+            # store result in data frame
+            results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis]
+            print("Iteration:{0}-Model:{1}-Misfit:{2}".format(i, model, total_mis))
+
+        if save:  # save the file as csv
+            results.to_csv(self.simulation_path+'.csv')
+        else:
+            return results  # self explanatory
 
     def modify_site_model(self, model):
         """

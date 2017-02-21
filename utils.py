@@ -114,7 +114,7 @@ def silent_remove(filename):
 
 def df_cols(dimensions):
     cols = ['v'+str(num+1) for num in range(dimensions)]
-    [cols.append(title) for title in ('qs', 'rms')]
+    [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'total_mis')]
     return cols
 
 
