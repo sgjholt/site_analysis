@@ -150,7 +150,7 @@ class Sim1D(sc.Site, sm.Site1D):
         _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct, weights=weights,
                                                       lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
         # store result in pandas data frame
-        results.loc[0] = self.Mod['Vs'] + self.Mod['Qs'][0] + [amp_mis, freq_mis, total_mis]
+        results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis]
         # loop over the model realisations picked at random and calculate misfit
         for i, model in enumerate(realisations):
             self.modify_site_model(model)  # change the model in Valerio's SiteModel class
