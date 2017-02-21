@@ -15,3 +15,4 @@ def rand_qc(working_dir):
         plt.subplot(2, 5, i + 1)
         site.qc(plot_on=True)
     plt.show()
+
