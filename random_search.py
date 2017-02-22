@@ -42,7 +42,7 @@ def uniform_search(*args):
     vrs = [site, wd, rd, pct, steps, iters, weights, lam, i_ang, x_range, elastic, cadet_correct]
 
     with open(rd+name+'.cfg', 'wt') as f:
-        f.write('config file for {0}'.format(name).capitalize())
+        f.write('config file for {0}'.format(name).upper())
         f.write('\n')
         f.write('\n')
         for i, title in enumerate(titles):
