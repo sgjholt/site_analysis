@@ -21,6 +21,7 @@ def main():
     wd = '/data/share/Japan/SiteInfo/S_B/Repi_lessthan_300_depth_lessthan_25/'
     rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC'.format(site)
     if not os.path.isdir(rd):
+        print('creating dir: {0}'.format(rd))
         os.mkdir(rd)
     uniform_search(site, wd, rd, 25, 100, iterations, name, (0.4, 0.6), 1, 0, (0, 25), False, False)
 
