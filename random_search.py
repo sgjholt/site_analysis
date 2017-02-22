@@ -17,13 +17,23 @@ import os
 def main():
     site = 'FKSH16'
     iterations = 1000
-    name = 'random_uniform_'+site+'_'+str(iterations)
+    name = site+'_rnd_ufm_'+'_'+str(iterations)+'_run_0'
     wd = '/data/share/Japan/SiteInfo/S_B/Repi_lessthan_300_depth_lessthan_25/'
     rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC'.format(site)
-    if not os.path.isdir(rd):
+
+    if not os.path.isdir(rd):  # if not a directory, make it
         print('creating dir: {0}'.format(rd))
         os.mkdir(rd)
+
+    if os.path.exists(rd+'/'+name+'.csv'):
+        j = 0
+        while os.path.exists(name + '.csv'):
+            j += 1  # if the file already exists, give it another name
+            name = name.replace('run_0', 'run_{0}'.format(j))
+        print('name changed to: {0}'.format(name))
+
     uniform_search(site, wd, rd, 25, 100, iterations, name, (0.4, 0.6), 1, 0, (0, 25), False, False)
+
 
 
 def uniform_search(*args):
@@ -50,3 +60,5 @@ if __name__ == '__main__':
     start_time = time.time()
     main()
     print("--- {0} seconds elapsed ---".format(time.time() - start_time))
+
+
