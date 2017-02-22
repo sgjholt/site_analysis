@@ -129,17 +129,17 @@ class Sim1D(sc.Site, sm.Site1D):
         """
 
 
-        :param pct_variation:
-        :param steps:
-        :param iterations:
-        :param name:
-        :param weights:
-        :param lam:
-        :param i_ang:
-        :param x_cor_range:
-        :param elastic:
-        :param cadet_correct:
-        :param save:
+        :param pct_variation: percentage about the original vs model value to vary
+        :param steps: amount of steps - more steps = less space between Vs values
+        :param iterations: number of model space realisations - chosen at random
+        :param name: the name of the simulation (file to be saved)
+        :param weights: weights for misfit function - see misfit method
+        :param lam: lambda for exponential CDF - see misfit method
+        :param i_ang: incident angle of upgoing wave - rads
+        :param x_cor_range: range for x_correlation - see misfit method
+        :param elastic: elastic or anelastic simulation
+        :param cadet_correct: apply cadet et al. 2012 correction to observed SB ratio
+        :param save: save the result as csv file
         :return:
         """
 
