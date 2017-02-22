@@ -42,6 +42,7 @@ class Site:
     vel_file_dir = '/data/share/Japan/SiteInfo/physicaldata/'
     metadata_path = '/data/share/Japan/SiteInfo/sitepub_kik_en.csv'
     metadata = {}
+    vel_profile = None
     has_vel_profile = True
     vp_vs = None
 
@@ -79,6 +80,9 @@ class Site:
             - vel_profile[:,3] = Vp [m/s]
             - vel_profile[:,4] = Vs [m/s]
         """
+        if self.vel_profile is not None:  # so you don't have to repeatedly load it
+            return self.vel_profile
+
         vel_profile = None
         titles = ['thickness', 'depth', 'vp', 'vs']
 
@@ -87,7 +91,8 @@ class Site:
                 vel_profile = read_kik_vel_file(self.vel_file_dir + 'velocity_models/' + self.site + '.dat')
             except FileNotFoundError:
                 print('No velocity profile for ' + self.site)
-                return vel_profile
+                self.vel_profile = vel_profile
+                return self.vel_profile
 
             vel = {titles[i]: vel_profile[:, i + 1] for i in range(len(titles))}
             vel.update({'rho': calc_density_profile(vel_profile[:, 3] / 1000) * 1000, 'rho_sig': 130})
@@ -103,7 +108,9 @@ class Site:
             vel.update({'rho': calc_density_profile(vel_profile[1][:, 3] / 1000) * 1000, 'rho_sig': 130})
             vel.update({'type': list(vel_profile[0])})
 
-        return vel
+        self.vel_profile = vel
+
+        return self.vel_profile
 
     def sb_ratio(self, mod_factor=None, cadet_correct=False, prof=None, litho=False):
         sb = pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
