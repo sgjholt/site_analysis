@@ -27,7 +27,7 @@ def main():
 
 def uniform_search(*args):
     site, wd, rd, pct, steps, iters, name, weights, lam, i_ang, x_range, elastic, cadet_correct = args
-    names = ['site', 'SB_dir', 'run_dir', 'pct_variation', 'model_steps', 'iterations', 'misfit_weights', 'lambda',
+    titles = ['site', 'SB_dir', 'run_dir', 'pct_variation', 'model_steps', 'iterations', 'misfit_weights', 'lambda',
              'i_ang', 'x_range_for_xcor', 'elastic', 'cadet_correct']
     vrs = [site, wd, rd, pct, steps, iters, weights, lam, i_ang, x_range, elastic, cadet_correct]
 
@@ -35,8 +35,8 @@ def uniform_search(*args):
         f.write('config file for {0}'.format(name).capitalize())
         f.write('\n')
         f.write('\n')
-        for i, name in enumerate(names):
-            f.write("{0} = {1}".format(name, vrs[i]))
+        for i, title in enumerate(titles):
+            f.write("{0} = {1}".format(title, vrs[i]))
             f.write('\n')
 
     site = sd.Sim1D(site, working_directory=wd, run_dir=rd)

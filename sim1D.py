@@ -126,9 +126,22 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def uniform_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
                               x_cor_range=(0, 25), elastic=True, cadet_correct=False, save=False):
-        # UNFINISHED
-        if not name.endswith('.usim'):  # in case you forget to add it
-            name.join('.usim')
+        """
+
+
+        :param pct_variation:
+        :param steps:
+        :param iterations:
+        :param name:
+        :param weights:
+        :param lam:
+        :param i_ang:
+        :param x_cor_range:
+        :param elastic:
+        :param cadet_correct:
+        :param save:
+        :return:
+        """
 
         self.simulation_path = self.run_dir + name
 
