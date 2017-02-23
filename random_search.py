@@ -25,9 +25,9 @@ def main():
         print('creating dir: {0}'.format(rd))
         os.mkdir(rd)
 
-    if os.path.exists(rd+name+'.csv'):
+    if os.path.exists(rd+name+'.cfg'):
         j = 0
-        while os.path.exists(rd+name+'.csv'):
+        while os.path.exists(rd+name+'.cfg'):
             j += 1  # if the file already exists, give it another name
             name = name.replace('run_0', 'run_{0}'.format(j))
         print('name changed to: {0}'.format(name))
