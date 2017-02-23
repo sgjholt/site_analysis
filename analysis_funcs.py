@@ -16,3 +16,18 @@ def rand_qc(working_dir):
         site.qc(plot_on=True)
     plt.show()
 
+
+#def vel_models(subset):
+#
+#    plt.step(subset.min(axis=0)[0:5], [x for x in range(1, 6)], '--k')
+#    plt.step(subset.max(axis=0)[0:5], [x for x in range(1, 6)], '--k')
+#    plt.step(subset.loc[0][0:5], [x for x in range(1, 6)], 'k', linewidth=2, label='Original')
+#
+#    plt.gca().invert_yaxis()
+#    plt.xlabel('Vs [m/s]')
+#    plt.ylabel('layer num')
+#    plt.title('Model w/Misfit < Original ')
+#    plt.title('Model w/Misfit < Original FKSH11')
+
+
+

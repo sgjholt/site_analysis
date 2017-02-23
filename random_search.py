@@ -38,7 +38,7 @@ def main():
 def uniform_search(*args):
     site, wd, rd, pct, steps, iters, name, weights, lam, i_ang, x_range, elastic, cadet_correct = args
     titles = ['site', 'SB_dir', 'run_dir', 'pct_variation', 'model_steps', 'iterations', 'misfit_weights', 'lambda',
-             'i_ang', 'x_range_for_xcor', 'elastic', 'cadet_correct']
+              'i_ang', 'x_range_for_xcor', 'elastic', 'cadet_correct']
     vrs = [site, wd, rd, pct, steps, iters, weights, lam, i_ang, x_range, elastic, cadet_correct]
 
     with open(rd+name+'.cfg', 'wt') as f:
