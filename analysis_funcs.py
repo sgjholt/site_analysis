@@ -1,6 +1,7 @@
 from site_class import Site
 from utils import rand_sites
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def rand_qc(working_dir):
@@ -64,3 +65,26 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
             fwd = site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)
             plt.loglog(site_obj.Amp['Freq'], fwd, label='mis={}'.format(round(model[-1], 3)))
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct, show=True)
+
+
+def randomise_q(site_obj):
+    """
+
+
+    :param site_obj: site object
+    :return: None - inplace function
+    """
+    site_obj.Mod['Qs'] = [0 for _ in site_obj.Mod['Qs']]
+    site_obj.Mod['Qs'] = (np.array(site_obj.Mod['Qs'])+np.random.randint(2, 50, len(site_obj.Mod['Qs']))).tolist()
+
+
+def search_qs(site_obj, its):
+    site_obj.Mod['Qs'] = [10 for _ in site_obj.get_velocity_profile()['vs']]
+    site_obj.elastic_forward_model(elastic=False, plot_on=True, show=False)
+    mods = [site_obj.Mod['Qs']]
+    for i in range(its+1):
+        randomise_q(site_obj)
+        site_obj.elastic_forward_model(elastic=False, plot_on=True, show=False)
+        print('{0}'.format(site_obj.Mod['Qs']))
+        mods.append([str(num) for num in site_obj.Mod['Qs']])
+    plt.legend([mod for mod in mods])
