@@ -76,7 +76,7 @@ def pick_model(model_space, perm):
     return np.array(current_perm)
 
 
-def define_model_space(original, variation_pct, steps):
+def uniform_model_space(original, variation_pct, steps, const_q=None):
     """
     Defines the model space to be searched from given original values. The model space range is defined by a percentage
     set by the user. The model space covers the whole range +to- this percentage of the original value in a set number
@@ -85,6 +85,7 @@ def define_model_space(original, variation_pct, steps):
     :param original: original model - list or np.ndarray of length N
     :param variation_pct: single percentage value for extremes of search (e.g 50) - int/float
     :param steps: single value for number of values to generate as a factor of 5,10 is optimal - int/float
+    :param const_q: constant value for Q if not None
     :return: np.ndarray matrix containing the defined model space
     """
     model_space = np.zeros((len(original), steps+1))
@@ -92,9 +93,12 @@ def define_model_space(original, variation_pct, steps):
         low = row - row*variation_pct/100
         high = row + row*variation_pct/100
         model_space[i] = np.linspace(high, low, steps+1)
-
-    return np.concatenate((np.matrix.round(model_space, 0), np.matrix.round(
-        np.logspace(np.log10(50), np.log10(2), steps+1, base=10), 2)[None, :]))
+    if const_q is not None:
+        return np.concatenate((np.matrix.round(model_space, 0), np.matrix.round(
+            np.zeros(steps+1)+10, const_q)[None, :]))
+    else:
+        return np.concatenate((np.matrix.round(model_space, 0), np.matrix.round(
+            np.logspace(np.log10(50), np.log10(2), steps+1, base=10), 2)[None, :]))
 
 
 def silent_remove(filename):

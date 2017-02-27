@@ -5,7 +5,7 @@ import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from utils import binning, pick_model, define_model_space, silent_remove, df_cols, calc_density_profile, exp_cdf
+from utils import binning, pick_model, uniform_model_space, df_cols, calc_density_profile, exp_cdf
 # import itertools
 
 
@@ -125,7 +125,7 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.show()
 
     def uniform_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
-                              x_cor_range=(0, 25), elastic=True, cadet_correct=False, save=False):
+                              x_cor_range=(0, 25), const_q=None, elastic=True, cadet_correct=False, save=False):
         """
 
 
@@ -137,6 +137,7 @@ class Sim1D(sc.Site, sm.Site1D):
         :param lam: lambda for exponential CDF - see misfit method
         :param i_ang: incident angle of upgoing wave - rads
         :param x_cor_range: range for x_correlation - see misfit method
+        :param const_q: if not None provide value for constant damping
         :param elastic: elastic or anelastic simulation
         :param cadet_correct: apply cadet et al. 2012 correction to observed SB ratio
         :param save: save the result as csv file
@@ -145,7 +146,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         self.simulation_path = self.run_dir + name
 
-        self.model_space = define_model_space(self.Mod['Vs'], pct_variation, steps)  # build the model space
+        self.model_space = uniform_model_space(self.Mod['Vs'], pct_variation, steps, const_q=const_q)  # build the model space
 
         dimensions, indexes = self.model_space.shape  # log the dimensions of the model space
 
