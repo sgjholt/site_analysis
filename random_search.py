@@ -1,5 +1,3 @@
-__author__ = 'James Holt'
-
 # random_search - script to run random velocity profile searches
 # VERSION: 0.9
 # AUTHOR(S): JAMES HOLT - UNIVERSITY OF LIVERPOOL
@@ -11,6 +9,8 @@ __author__ = 'James Holt'
 import sim1D as sd
 import time
 import os
+
+__author__ = 'James Holt'
 # ---------------------------------modules--------------------------------------#
 
 
@@ -32,7 +32,7 @@ def main():
             name = name.replace('run_0', 'run_{0}'.format(j))
         print('name changed to: {0}'.format(name))
 
-    uniform_search(site, wd, rd, 25, 100, iterations, name, (0.4, 0.6), 1, 0, (0, 25), False, False)
+    uniform_search(site, wd, rd, 25, 10, iterations, name, (0.4, 0.6), 1, 0, (0, 25), False, False)
 
 
 def uniform_search(*args):
