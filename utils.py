@@ -76,7 +76,7 @@ def pick_model(model_space, perm):
     return np.array(current_perm)
 
 
-def uniform_model_space(original, variation_pct, steps, const_q=None):
+def uniform_model_space(original, variation_pct, steps, vs_only=False, const_q=None):
     """
     Defines the model space to be searched from given original values. The model space range is defined by a percentage
     set by the user. The model space covers the whole range +to- this percentage of the original value in a set number
@@ -93,12 +93,44 @@ def uniform_model_space(original, variation_pct, steps, const_q=None):
         low = row - row*variation_pct/100
         high = row + row*variation_pct/100
         model_space[i] = np.linspace(high, low, steps+1)
+
+    if vs_only:
+        return np.matrix.round(model_space, 0)
+
     if const_q is not None:
         return np.concatenate((np.matrix.round(model_space, 0), np.matrix.round(
             np.zeros(steps+1)+10, const_q)[None, :]))
     else:
         return np.concatenate((np.matrix.round(model_space, 0), np.matrix.round(
             np.logspace(np.log10(50), np.log10(2), steps+1, base=10), 2)[None, :]))
+
+
+def correlated_sub_model_space(original, variation_pct, cor_pct, steps, const_q=None):
+    """
+    UNFINISHED
+    :param original:
+    :param variation_pct:
+    :param cor_pct:
+    :param steps:
+    :param const_q:
+    :return:
+    """
+    ufms = uniform_model_space(original, variation_pct, steps, vs_only=True)
+    print('ufms={0}'.format(ufms))
+    csms = np.zeros((len(ufms)*2, steps+1))
+    csms[0] = ufms[0]  # allocate the first layer
+    print('cfms[0]={0}, ufms[0]={1}'.format(csms[0], ufms[0]))
+
+    for i in range(1, len(csms)):
+
+        if i % 2 == 0:
+            csms[i] = ufms[int(i/2)]
+        else:
+            csms[i] = csms[i-1]*(1+cor_pct/100)
+        # if i >= 3 and i % 2 > 0 and (ufms[i-2]-ufms[i-3])/abs((ufms[i-2]-ufms[i-3]))[0] == -1:
+        #    csms[i] = csms[i - 1] * (1 - cor_pct / 100)
+
+    return csms
 
 
 def silent_remove(filename):
