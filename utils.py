@@ -115,22 +115,42 @@ def correlated_sub_model_space(original, variation_pct, cor_pct, steps, const_q=
     :param const_q:
     :return:
     """
+    signs = search_lvl(original)  # when sign[i] = 1/-1 positive/negative corr between layers
     ufms = uniform_model_space(original, variation_pct, steps, vs_only=True)
-    print('ufms={0}'.format(ufms))
+    # print('ufms={0}'.format(ufms))
     csms = np.zeros((len(ufms)*2, steps+1))
     csms[0] = ufms[0]  # allocate the first layer
-    print('cfms[0]={0}, ufms[0]={1}'.format(csms[0], ufms[0]))
+    # print('cfms[0]={0}, ufms[0]={1}'.format(csms[0], ufms[0]))
 
+    j = 0
     for i in range(1, len(csms)):
-
-        if i % 2 == 0:
+        if i % 2 == 0:  # if the layer number is even (or 0)
             csms[i] = ufms[int(i/2)]
         else:
-            csms[i] = csms[i-1]*(1+cor_pct/100)
-        # if i >= 3 and i % 2 > 0 and (ufms[i-2]-ufms[i-3])/abs((ufms[i-2]-ufms[i-3]))[0] == -1:
-        #    csms[i] = csms[i - 1] * (1 - cor_pct / 100)
-
+            j += 1  # increase count of j to refer to correct/corresponding row of smaller model matrix
+            if i < len(csms)-1:  # if not the last layer (the case where we assume increase)
+                multiplier = csms[i-1]*(1+(cor_pct/100)*signs[i-j])
+                # csms[i] = csms[i-1]*(1+(cor_pct/100)*signs[i-j])
+                if signs[i-j] == 1 and np.greater(multiplier, ufms[i-j+1]).any():  # corr layer > layer below (fake lvl)
+                    csms[i] = (csms[i-1]+ufms[i-j+1])/2  # put the correlated layer half-way between two original layers
+                elif signs[i-j] == -1 and np.greater(ufms[i-j+1], multiplier).any():  # as above but in opposite sense
+                    csms[i] = (csms[i-1]+ufms[i-j+1])/2
+                else:
+                    csms[i] = csms[i-1]*(1+(cor_pct/100)*signs[i-j])
+            else:
+                csms[i] = csms[i - 1] * (1 + (cor_pct / 100) * signs[i - j])
     return csms
+
+
+def search_lvl(model):
+    """
+    Search model and identify increasing velocity transitions with 1 and negative (lvl transition) with -1.
+    :param model: list/np.ndarray: velocity model to be examined - MUST BE VECTOR (1*N/N*1)
+    :return: list: transitions labelled 1 (increasing vel) or -1 (decreasing vel)
+    """
+    # assume last correlated layer has > vel
+    return [int((model[i]-model[i-1])/np.abs(model[i]-model[i-1])) for i in range(1, model.size)] + [1]
+
 
 
 def silent_remove(filename):
