@@ -225,3 +225,4 @@ def exp_cdf(x, lam):
 #
 
 # plt.plot(np.array(fp(sb_mean, np.arange(1,11)))*0.01, np.exp(sb_mean[fp(sb_mean, np.arange(1,11))]), 'r*')
+

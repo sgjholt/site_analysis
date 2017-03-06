@@ -10,12 +10,20 @@ from utils import binning, pick_model, uniform_model_space, df_cols, calc_densit
 
 
 class Sim1D(sc.Site, sm.Site1D):
+
     model_space = []
     run_dir = ''
     simulation_path = ''
 
     def __init__(self, name, working_directory, run_dir=None, litho=False, vel_file_dir=None):
+        """
 
+        :param name:
+        :param working_directory:
+        :param run_dir:
+        :param litho:
+        :param vel_file_dir:
+        """
         sc.Site.__init__(self, name, working_directory, vel_file_dir)
         sm.Site1D.__init__(self)
         self.litho = litho
@@ -26,7 +34,10 @@ class Sim1D(sc.Site, sm.Site1D):
             self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
 
     def __add_site_profile(self):
+        """
 
+        :return:
+        """
         if not self.has_vel_profile:  # printing is handled in the Site class to warn the user - just return None
             return None
 
@@ -37,7 +48,15 @@ class Sim1D(sc.Site, sm.Site1D):
             self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 10, 10])
 
     def elastic_forward_model(self, i_ang=0, elastic=True, plot_on=False, show=False, freqs=None):
+        """
 
+        :param i_ang:
+        :param elastic:
+        :param plot_on:
+        :param show:
+        :param freqs:
+        :return:
+        """
         if not self.has_vel_profile:
             print('Cannot model - no velocity model')
             return None
@@ -132,7 +151,7 @@ class Sim1D(sc.Site, sm.Site1D):
         :param pct_variation: percentage about the original vs model value to vary
         :param steps: amount of steps - more steps = less space between Vs values
         :param iterations: number of model space realisations - chosen at random
-        :param name: the name of the simulation (file to be saved)
+        :param name: the name of the simulation (file to be saved)I
         :param weights: weights for misfit function - see misfit method
         :param lam: lambda for exponential CDF - see misfit method
         :param i_ang: incident angle of upgoing wave - rads

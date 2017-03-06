@@ -2,6 +2,7 @@ from site_class import Site
 from utils import rand_sites
 import matplotlib.pyplot as plt
 import numpy as np
+import glob
 
 
 def rand_qc(working_dir):
@@ -88,3 +89,26 @@ def search_qs(site_obj, its):
         print('{0}'.format(site_obj.Mod['Qs']))
         mods.append([str(num) for num in site_obj.Mod['Qs']])
     plt.legend([mod for mod in mods])
+
+
+def compare_strata(site_obj):
+    files = glob.glob('/home/sgjholt/Compare_strata/*.csv')
+    all_data = [np.loadtxt(fname, skiprows=3, delimiter=',') for fname in files]
+    #return all_data
+    plt.figure()
+    ax1 = plt.subplot(121)
+    for i, data in enumerate(all_data):
+        plt.loglog(data[:, 0], data[:, 1], label='{0}'.format(files[i].split(' m ')[-1].split('-')[0]))
+    site_obj.elastic_forward_model(elastic=False, plot_on=True)
+    plt.xlabel('Freq [Hz]')
+    plt.ylabel('SB Ratio')
+    plt.legend()
+    plt.grid(which='both')
+
+    for i in range(1, len(all_data)):
+        all_data[0] = np.hstack((all_data[0], all_data[i][:, 1:]))
+    ax2 = plt.subplot(122, sharey=ax1)
+    plt.loglog(all_data[0][:, 0], np.exp(np.mean(np.log(all_data[0][:, 1:]), axis=1)), label='mean strata')
+    plt.plot()
+    site_obj.plot_sb(stdv=(1,))
+    plt.xlabel('Freq [Hz]')

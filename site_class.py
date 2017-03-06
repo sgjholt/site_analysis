@@ -73,7 +73,7 @@ class Site:
 
         ***NOTE***: some minor processing occurs in parser function before returning - see above for details.
 
-        USAGE: vel_profile = Site.get_velocity_profile()
+        USAGE: vel_profile = self.get_velocity_profile()
             - vel_profile[:,0] = index
             - vel_profile[:,1] = Thickness [m]
             - vel_profile[:,2] = Depth [m]
