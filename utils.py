@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from find_peaks import detect_peaks
 import random
 import contextlib
 import os
@@ -226,3 +227,41 @@ def exp_cdf(x, lam):
 
 # plt.plot(np.array(fp(sb_mean, np.arange(1,11)))*0.01, np.exp(sb_mean[fp(sb_mean, np.arange(1,11))]), 'r*')
 
+
+def fill_troughs(sig, pct):
+
+    _sig = sig.copy()
+    """
+
+    :param sig:
+    :return:
+    """
+    locs = detect_peaks(sig)
+    amp = np.zeros(locs.size)
+    dist = np.zeros(locs.size-1)
+
+    def interp(x):
+
+        points = np.linspace(locs[x], locs[x + 1]-1, dist[x], dtype=int)
+        return points, np.interp(points, locs[x:x + 2], amp[x:x + 2])
+
+    for i in range(dist.size):
+        dist[i] = locs[i+1] - locs[i]
+        amp[i] = sig[locs[i]]*(pct/100)
+
+    for i in range(dist.size+1):
+        inds, fills = interp(i)
+
+        for n in range(inds[0], inds[-1] + 1):
+            if _sig[n] < fills[n - inds[0]]:
+               _sig[n] = fills[n - inds[0]]
+
+    return _sig
+
+
+
+
+
+
+
+sig[out[0]][[out[1]>sig[out[0]]]] = out[1][out[1]>sig[out[0]]]
