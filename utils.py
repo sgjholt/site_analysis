@@ -241,20 +241,20 @@ def fill_troughs(sig, pct):
     dist = np.zeros(locs.size-1)
 
     def interp(x):
-
         points = np.linspace(locs[x], locs[x + 1]-1, dist[x], dtype=int)
         return points, np.interp(points, locs[x:x + 2], amp[x:x + 2])
 
-    for i in range(dist.size):
-        dist[i] = locs[i+1] - locs[i]
-        amp[i] = sig[locs[i]]*(pct/100)
+    for i in range(amp.size):
+        amp[i] = sig[locs[i]] * (pct / 100)
+        if i < amp.size-1:
+            dist[i] = locs[i+1] - locs[i]
 
-    for i in range(dist.size+1):
+    for i in range(dist.size):
         inds, fills = interp(i)
 
         for n in range(inds[0], inds[-1] + 1):
             if _sig[n] < fills[n - inds[0]]:
-               _sig[n] = fills[n - inds[0]]
+                _sig[n] = fills[n - inds[0]]
 
     return _sig
 

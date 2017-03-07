@@ -90,7 +90,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, x_cor_range=(0, 25), elastic=True, plot_on=False, show=False, cadet_correct=False):
+    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, x_cor_range=(0, 25), elastic=True, plot_on=False, show=False, cadet_correct=False, fill_troughs=None):
         """
 
         :param weights: weights to assign to components of misfit e.g. weights[0] = amplitude misfit weight and
@@ -112,18 +112,20 @@ class Sim1D(sc.Site, sm.Site1D):
         std = sb_table.loc['std'].values  # std of ln values
         _freqs = sb_table.columns.values.astype(float)  # str by default
         freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
-        predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)  # calc fwd model
+        predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)[::, 0]  # calc fwd model
 
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
             return None  # return nothing to break out of function
+        if fill_troughs is not None:
+            predicted = fill_troughs(predicted, fill_troughs)
 
-        log_residuals = (np.log(predicted.reshape(1, len(predicted))[0]) - observed)/std  # weighted by stdv
+        log_residuals = (np.log(predicted) - observed)/std  # weighted by stdv
         log_residuals /= np.abs(log_residuals).max()  # normalise between 0-1
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5  # amplitude quality of fit
         # re-sample the predicted and observed signals to the range specified for x_correlation
-        x_cor_p = np.log(predicted.reshape(1, len(predicted))[0][(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])])
+        x_cor_p = np.log(predicted[(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])])
         x_cor_o = observed[(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])]
         # Perform the x_correlation - take arg max and subtract half the total length to get the 'frequency lag'
         x_cor = np.correlate(x_cor_o, x_cor_p, 'full')  # do x_corr, store in memory - efficient for large sims
@@ -144,7 +146,7 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.show()
 
     def uniform_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
-                              x_cor_range=(0, 25), const_q=None, elastic=True, cadet_correct=False, save=False):
+                              x_cor_range=(0, 25), const_q=None, elastic=True, cadet_correct=False, fill_troughs=None, save=False):
         """
 
 
@@ -180,8 +182,9 @@ class Sim1D(sc.Site, sm.Site1D):
         results.index.name = 'trial'
 
         # run original model
-        _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct, weights=weights,
-                                                      lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
+        _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                      fill_troughs=fill_troughs, weights=weights, lam=lam,
+                                                      i_ang=i_ang, x_cor_range=x_cor_range)
         print("Trial:{0}-Model:{1}-Misfit:{2}".format(0, self.Mod['Vs']+[self.Mod['Qs'][0]], total_mis))
         # store result in pandas data frame
         results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis]
@@ -190,8 +193,9 @@ class Sim1D(sc.Site, sm.Site1D):
             self.modify_site_model(model)  # change the model in Valerio's SiteModel class
 
             # calculate misfit
-            _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct, weights=weights,
-                                                          lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
+            _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                          fill_troughs=fill_troughs, weights=weights, lam=lam,
+                                                          i_ang=i_ang, x_cor_range=x_cor_range)
             # store result in data frame
             results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis]
             print("Trial:{0}-Model:{1}-Misfit:{2}".format(i+1, model, total_mis))
