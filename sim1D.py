@@ -5,7 +5,7 @@ import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from utils import binning, pick_model, uniform_model_space, df_cols, calc_density_profile, exp_cdf
+from utils import binning, pick_model, uniform_model_space, df_cols, calc_density_profile, exp_cdf, fill_troughs
 # import itertools
 
 
