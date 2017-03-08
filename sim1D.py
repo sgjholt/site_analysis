@@ -117,8 +117,8 @@ class Sim1D(sc.Site, sm.Site1D):
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
             return None  # return nothing to break out of function
-        if fill_troughs is not None:
-            predicted = fill_troughs(predicted, fill_troughs)
+        if fill_troughs_pct is not None:
+            predicted = fill_troughs(predicted, fill_troughs_pct)
 
         log_residuals = (np.log(predicted) - observed)/std  # weighted by stdv
         log_residuals /= np.abs(log_residuals).max()  # normalise between 0-1
