@@ -90,7 +90,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, x_cor_range=(0, 25), elastic=True, plot_on=False, show=False, cadet_correct=False, fill_troughs=None):
+    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, x_cor_range=(0, 25), elastic=True, plot_on=False, show=False, cadet_correct=False, fill_troughs_pct=None):
         """
 
         :param weights: weights to assign to components of misfit e.g. weights[0] = amplitude misfit weight and
@@ -146,7 +146,7 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.show()
 
     def uniform_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
-                              x_cor_range=(0, 25), const_q=None, elastic=True, cadet_correct=False, fill_troughs=None, save=False):
+                              x_cor_range=(0, 25), const_q=None, elastic=True, cadet_correct=False, fill_troughs_pct=None, save=False):
         """
 
 
