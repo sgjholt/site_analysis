@@ -183,7 +183,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         # run original model
         _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                      fill_troughs=fill_troughs, weights=weights, lam=lam,
+                                                      fill_troughs=fill_troughs_pct, weights=weights, lam=lam,
                                                       i_ang=i_ang, x_cor_range=x_cor_range)
         print("Trial:{0}-Model:{1}-Misfit:{2}".format(0, self.Mod['Vs']+[self.Mod['Qs'][0]], total_mis))
         # store result in pandas data frame
