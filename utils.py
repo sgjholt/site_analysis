@@ -264,4 +264,4 @@ def fill_troughs(sig, pct):
 
 
 
-sig[out[0]][[out[1]>sig[out[0]]]] = out[1][out[1]>sig[out[0]]]
+#sig[out[0]][[out[1]>sig[out[0]]]] = out[1][out[1]>sig[out[0]]]
