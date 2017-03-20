@@ -10,6 +10,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 from parsers import parse_ben_sb, read_kik_vel_file, parse_metadata, parse_litho
 from utils import calc_density_profile, dest_freq, downgoing_transform_func
 
@@ -41,12 +42,14 @@ class Site:
     site = ''
     vel_file_dir = '/data/share/Japan/SiteInfo/physicaldata/'
     metadata_path = '/data/share/Japan/SiteInfo/sitepub_kik_en.csv'
+    arias_intensity_dir = '/data/share/Japan/SiteInfo/arias_intensity/'
+    db_path = '/data/share/Japan/Kik_catalogue.csv'
     metadata = {}
     vel_profile = None
     has_vel_profile = True
     vp_vs = None
 
-    def __init__(self, name, working_directory, vel_file_dir=None, metadata_path=None):
+    def __init__(self, name, working_directory, vel_file_dir=None, metadata_path=None, arias_intensity_dir=None):
 
         self.working_directory = working_directory
         self.site = name
@@ -57,6 +60,8 @@ class Site:
         self.metadata = parse_metadata(self.metadata_path, name)
         if self.get_velocity_profile() is None:
             self.has_vel_profile = False
+        if arias_intensity_dir is not None:
+            self.arias_intensity_dir = arias_intensity_dir
         else:
             if np.any(self.get_velocity_profile()['vs'] == 0):
                 self.has_vel_profile = False
@@ -203,6 +208,21 @@ class Site:
                 pass
         else:
             pass
+
+    def arias_intensity(self, db=None, plot_on=False, sig_dur=(5, 95)):
+        # if os.path.isfile(os.join(self.arias_intensity_dir, self.site+'.ai.csv'):
+        #     self.arias_intensity = ***LOAD FILE**
+        # else:
+        #     if db is None:
+        #         print('database required to calculate arias intensity for {0}'.format(self.site))
+        #      else:
+        #         output = ***RUN ARIAS INTENSITY SCRIPT***
+        #         self.arias_intensity = output
+        # if plot_on:
+        #     ***RUN PLOTTING SCRIPT***
+        # else:
+        #    return self.arias_intensity
+        pass
 
     def add_metadata(self, metadata_dict):
         self.metadata.update(metadata_dict)

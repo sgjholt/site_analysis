@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
+import scipy.signal as sg
 from find_peaks import detect_peaks
+from parsers import readKiknet
 import random
 import contextlib
 import os
@@ -153,7 +155,6 @@ def search_lvl(model):
     return [int((model[i]-model[i-1])/np.abs(model[i]-model[i-1])) for i in range(1, model.size)] + [1]
 
 
-
 def silent_remove(filename):
     """
     The silent_remove() function uses the os.remove method to remove a
@@ -259,9 +260,52 @@ def fill_troughs(sig, pct):
     return _sig
 
 
+def combine_comps(datEW, datNS):
+    """Combines the two time series - magnitude of vectors. """
+
+    rows = len(datEW)
+
+    datEW = sg.detrend(datEW.reshape(1, rows * 8)[0])
+    datNS = sg.detrend(datNS.reshape(1, rows * 8)[0])
+
+    if np.min(datEW) < np.min(datNS):
+        lowest = int(np.min(datEW))
+    else:
+        lowest = int(np.min(datNS))
+
+    datEW = datEW - (lowest - 10)
+    datNS = datNS - (lowest - 10)
+
+    comb = (datEW ** 2 + datNS ** 2) ** (1 / 2)
+
+    return comb.reshape(rows, 8) - comb[0]
+
+
+def mean_duration(site, db, instrument, magnitude=(), distance=()):
+    paths = db.query(
+        'site == {0} & instrument == "Borehole", & jma_mag >= {1} & jma_mag <={2} & {3} >= {4} & {5} <={3}'.format(
+            site, magnitude[0], magnitude[1], distance[0], distance[1], distance[2])).path.values.tolist()
+    if instrument == 'Borehole':
+        comps = ('.EW1', '.NS1')
+    else:
+        comps = ('.EW2', '.NS2')
+
+    wfms = []
+    for i, path in enumerate(paths):
+         paths[i] = [path.join(comp) for comp in comps]
+         wfms.append([readKiknet(p) for p in paths[i]])
+
+
+
+
+def calculate_arias_intensity(waveform):
 
 
 
 
 
-#sig[out[0]][[out[1]>sig[out[0]]]] = out[1][out[1]>sig[out[0]]]
+
+
+
+
+# sig[out[0]][[out[1]>sig[out[0]]]] = out[1][out[1]>sig[out[0]]]

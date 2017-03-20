@@ -99,3 +99,74 @@ def parse_litho(path):
     litho_vals = np.concatenate((thickness.reshape(thickness.size, 1), litho_vals), axis=1)
 
     return litho_names, litho_vals
+
+def readKiknet(fname, grabsignal=True):
+    if fname.endswith(".gz"):
+        with gzip.open(fname, 'rt', newline='\n') as f:
+            if not grabsignal:  # only grab headers using iter (DONT USE .readlines())
+                strings = [next(f).replace("\n", "").split() for x in range(15)]
+            else:  # grab the whole file using iter (DONT USE .readlines())
+                strings = [line.replace("\r", "").split() for line in f]
+    else:
+        with open(fname, 'rt', newline='\n') as f:
+            if not grabsignal:  # only grab headers using iter (DONT USE .readlines())
+                strings = [next(f).replace("\n", "").split() for x in range(15)]
+            else:  # grab the whole file using iter (DONT USE .readlines())
+                strings = [line.replace("\r", "").split() for line in f]
+
+    # ASSIGN THE DATA TO APPROPRIATE VARS TO BE PASSED INTO DICT
+    # station name
+    stname = strings[5][2]
+    # magnitude (jma)
+    jmamag = float(strings[4][1])
+    # frequency/dt
+    freq = strings[10][2].strip('Hz')
+    dt = 1 / float(freq)
+    # station/event lats/longs
+    slat, slong, olat, olong = (float(strings[6][-1]), float(
+        strings[7][-1]), float(strings[1][-1]), float(strings[2][-1]))
+    # scaling factor block
+    scalingF = float(strings[13][2].split('(gal)/')[0]) / float(
+        strings[13][2].split('(gal)/')[1])  # ARRGH WHY FORMAT LIKE THIS
+    if fname.split('.')[1][-1] == "1":
+        where = "Borehole: " + fname.split('.')[1][0:2]
+    elif fname.split('.')[1][-1] == "2":
+        where = "Surface: " + fname.split('.')[1][0:2]
+    else:
+        print("KNET FILE DETECTED")
+        # origin date and time (Japan)
+    odate_time = UTCDateTime(datetime.datetime.strptime(strings[0][-2] + " " + strings[0][-1],
+                                                        '%Y/%m/%d %H:%M:%S')) - 60 * 60 * 9  # -9hours for UTC time
+
+    # recording start time (Japan)
+    rdate_time = UTCDateTime(
+        datetime.datetime.strptime(strings[9][-2] + " " + strings[9][-1], '%Y/%m/%d %H:%M:%S')) - 60 * 60 * 9
+
+    # pga
+    pga = float(strings[14][-1])
+    # sheight (m), eqdepth (km)
+    eqdepth, sheight = (float(strings[3][-1]), float(strings[8][-1]))
+
+    if not grabsignal:  # return only the metadata
+        return {"site": stname, "jmamag": jmamag, "dt": dt, "SF": scalingF,
+                "origintime": odate_time, "instrument": where, "sitelatlon": (slat, slong),
+                "eqlatlon": (olat, olong), "eqdepth": eqdepth, "station height": sheight,
+                "pga": pga, "recordtime": rdate_time}
+    else:
+        # extract the data
+        data = strings[17:]  # data begins at line 17 to end
+        dat = np.zeros((len(data), 8))  # empty matrix of 0's to populate
+        for i in range(0, len(data)):
+            if len([float(l) for l in data[i]]) == 8:
+                # regular expressions not needed as whitespace between numbers only
+                dat[i, :] = [float(l) for l in data[i]]
+            else:  # append first data point (in counts) until len(array) == 8
+                tmp = [float(l) for l in data[i]]
+                [tmp.append(float(data[0][0])) for a in range(0, 8 - len(tmp))]
+                dat[i, :] = tmp
+
+        return {"data": sig.detrend(dat.reshape(1, dat.size)[0]), "site": stname,
+                "jmamag": jmamag, "dt": dt, "SF": scalingF, "origintime": odate_time,
+                "instrument": where, "sitelatlon": (slat, slong), "eqlatlon": (olat, olong),
+                "eqdepth": eqdepth, "station height": sheight, "pga": pga,
+                "recordtime": rdate_time}
