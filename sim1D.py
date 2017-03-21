@@ -5,7 +5,8 @@ import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from utils import binning, pick_model, uniform_model_space, df_cols, calc_density_profile, exp_cdf, fill_troughs
+from utils import binning, pick_model, uniform_model_space, df_cols, calc_density_profile, exp_cdf, fill_troughs, \
+    uniform_sub_model_space
 # import itertools
 
 
@@ -38,6 +39,9 @@ class Sim1D(sc.Site, sm.Site1D):
 
         :return:
         """
+        # hard reset the model parameters to avoid background problems
+        # self.Mod = []
+
         if not self.has_vel_profile:  # printing is handled in the Site class to warn the user - just return None
             return None
 
@@ -228,20 +232,118 @@ class Sim1D(sc.Site, sm.Site1D):
             for key in ['Vs', 'Vp', 'Dn']:
                 self.Mod[key][-1] = self.Mod[key][-2]  # make sure half layer = layer above (Thompson, 2012)
 
-
-
-
-
-
-
-
-
-
-
         # perms = itertools.product([x for x in range(indexes)], repeat=dimensions)
 
         # for i, perm in enumerate(perms):
         #    model = pick_model(model_space, perm)
         return None
 
+    def uniform_sub_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
+                                  x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
+                                  fill_troughs_pct=None, save=False):
+        """
+        UNFINISHED
 
+        :param pct_variation: percentage about the original vs model value to vary
+        :param steps: amount of steps - more steps = less space between Vs values
+        :param iterations: number of model space realisations - chosen at random
+        :param name: the name of the simulation (file to be saved)
+        :param weights: weights for misfit function - see misfit method
+        :param lam: lambda for exponential CDF - see misfit method
+        :param i_ang: incident angle of upgoing wave - rads
+        :param x_cor_range: range for x_correlation - see misfit method
+        :param const_q: if not None provide value for constant damping
+        :param elastic: elastic or anelastic simulation
+        :param cadet_correct: apply Cadet et al. 2012 correction to observed SB ratio
+        :param fill_troughs_pct:
+        :param save: save the result as csv file
+        :return:
+        """
+        # -------------------------------------run 0-----------------------------------------------------#
+
+        self.simulation_path = self.run_dir + name
+
+        self.model_space = uniform_model_space(self.Mod['Vs'], pct_variation, steps,
+                                               const_q=const_q)  # build the model space
+
+        dimensions, indexes = self.model_space.shape  # log the dimensions of the model space
+
+        random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))  # pick indices at random
+        # (from uniform distribution) and
+        # build realisations from the model space
+        realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
+        for i, row in enumerate(random_choices):
+            realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
+
+        all_results = []
+        results = pd.DataFrame(
+            columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
+        results.index.name = 'trial'
+        # run original model
+        _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                      fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                                                      i_ang=i_ang, x_cor_range=x_cor_range)
+        print(
+            "Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]], total_mis,
+                                                                     0))
+        # store result in pandas data frame
+        results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis, 0]
+        # loop over the model realisations picked at random and calculate misfit
+        for i, model in enumerate(realisations):
+            self.modify_site_model(model)  # change the model in Valerio's SiteModel class
+            # calculate misfit
+            _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                          fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                                                          i_ang=i_ang, x_cor_range=x_cor_range)
+            # store result in data frame
+            results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis, 0]
+            print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, 0))
+        all_results.append(results)
+
+        # -------------------------------------run sub-layers-----------------------------------------------------#
+
+        for n_layers in n_sub_layers:  # loop over
+            self.__add_site_profile()  # reset to original profile
+            self.model_space = uniform_sub_model_space(self.Mod['Vs'], pct_variation, steps, n_layers,
+                                                       const_q)  # build the model space
+
+            dimensions, indexes = self.model_space.shape  # log the dimensions of the model space
+
+            random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))  # pick indices at random
+            # (from uniform distribution) and
+            # build realisations from the model space
+            realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
+            for i, row in enumerate(random_choices):
+                realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
+
+            results = pd.DataFrame(
+                columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
+            results.index.name = 'trial'
+            # run original model
+            _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                          fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                                                          i_ang=i_ang, x_cor_range=x_cor_range)
+            print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]],
+                                                                           total_mis, n_layers))
+            # store result in pandas data frame
+            results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis, n_layers]
+            # loop over the model realisations picked at random and calculate misfit
+            for i, model in enumerate(realisations):
+                self.modify_site_model(model)  # change the model in Valerio's SiteModel class
+                # calculate misfit
+                _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                              fill_troughs_pct=fill_troughs_pct, weights=weights,
+                                                              lam=lam,
+                                                              i_ang=i_ang, x_cor_range=x_cor_range)
+                # store result in data frame
+                results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis, n_layers]
+                print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, n_layers))
+            all_results.append(results)
+
+        if save:  # save the file as csv
+            # results.to_csv(self.simulation_path+'.csv')
+            print('Need to add save clause: returning dataframes')
+            return all_results
+
+        else:
+            return all_results  # self explanatory

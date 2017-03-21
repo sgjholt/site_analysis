@@ -145,6 +145,27 @@ def correlated_sub_model_space(original, variation_pct, cor_pct, steps, const_q=
     return csms
 
 
+def uniform_sub_model_space(original, variation_pct, steps, n_sub_layers, const_q=None):
+    """
+    Uses the uniform_model_space function and creates a similar space with N sub-layers for each velocity boundary.
+    Q (related to damping) is also attached to the bottom row of the matrix for simulations.
+    :param original: original model - list or np.ndarray of length N
+    :param variation_pct: single percentage value for extremes of search (e.g 50) - int/float
+    :param steps: single value for number of values to generate as a factor of 5,10 is optimal - int/float
+    :param n_sub_layers: single value of desired amount of sub-layers - int/float
+    :param const_q: constant value for Q if not None - int/float
+    :return: np.ndarray matrix containing the defined model space. Has shape = [(len(ufms)*N)-(N-1), steps+1]
+    """
+    ufms = uniform_model_space(original, variation_pct, steps, const_q)
+    sbms = np.zeros((((len(ufms)) * n_sub_layers) - (n_sub_layers - 1), steps + 1))
+    for i, row in enumerate(ufms[:-1]):
+        for n in range(n_sub_layers):
+            sbms[i * n_sub_layers + n] = row
+    sbms[-1] = ufms[-1]
+
+    return sbms
+
+
 def search_lvl(model):
     """
     Search model and identify increasing velocity transitions with 1 and negative (lvl transition) with -1.
@@ -170,9 +191,12 @@ def silent_remove(filename):
         os.remove(filename)
 
 
-def df_cols(dimensions):
+def df_cols(dimensions, sub_layers=False):
     cols = ['v'+str(num+1) for num in range(dimensions-1)]
-    [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'total_mis')]
+    if sub_layers:
+        [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'total_mis', 'n_sub_layers')]
+    else:
+        [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'total_mis')]
     return cols
 
 
@@ -273,8 +297,8 @@ def combine_comps(datEW, datNS):
     else:
         lowest = int(np.min(datNS))
 
-    datEW = datEW - (lowest - 10)
-    datNS = datNS - (lowest - 10)
+    datEW -= (lowest - 10)
+    datNS -= (lowest - 10)
 
     comb = (datEW ** 2 + datNS ** 2) ** (1 / 2)
 
@@ -296,13 +320,28 @@ def mean_duration(site, db, instrument, magnitude=(), distance=()):
          wfms.append([readKiknet(p) for p in paths[i]])
 
 
-
-
 def calculate_arias_intensity(waveform):
+    waveform = ensure_flat_array(waveform)
+    return None
 
 
-
-
+def ensure_flat_array(array):
+    """
+    Ensures that the passed array is a standard 1-D numpy array
+    :param array: numpy array of any shape to be 'flattened'
+    :return:
+    """
+    correct_shape = False
+    try:
+        array.shape[1]
+    except IndexError:
+        correct_shape = True
+    if not correct_shape:
+        array.reshape(1, len(array))
+        array = array[::, 0]
+    else:
+        array = array[::, 0]
+    return array
 
 
 
