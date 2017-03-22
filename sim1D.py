@@ -209,34 +209,59 @@ class Sim1D(sc.Site, sm.Site1D):
         else:
             return results  # self explanatory
 
-    def modify_site_model(self, model):
+    def modify_site_model(self, model, sub_layers=False):
         """
         This function will modify the site model based on a specified Vs profile plus Qs value (model[-1])
 
         :param model: np.ndarray object containing Vs values in m/s model[:-1] and model[-1] is a Qs value
         :return: None - this is an inplace method
         """
-        for j, var in enumerate(model):  # assign vs values given in model to site
-            if j != len(model)-1:
-                self.Mod['Vs'][j] = var
-                self.Mod['Qs'][j] = model[-1]
+        if sub_layers:  # need to modify the whole model to account for addition of sub-layers
+            # self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
+            # case 0 - 'Hl' has not been changed to represent sublayer thicknesses - not the correct length
+            # must change Thicknesses, Density, Vp, Vs, Qp an Qs
+            if not self.Mod['Hl'] == len(model)-1:
+                subl_factor = len(model)-1/len(self.Mod['Hl'])  # how many sub-layers were used
+                hl = (np.zeros(len(model)-1) for _ in range(6))
+                for i, hl in enumerate(self.Mod['Hl']):
+                    for n in range(subl_factor):
+                        hl[i*subl_factor + n] = hl/subl_factor
+                self.Mod['Hl'] = hl.tolist()
 
-        vp = self.Mod['Vs'] * self.vp_vs   # use vp/vs to calculate Vp values such that physical properties are
-                                           # consistent in each layer
-        dn = calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000  # calculate density based on Vp
-        for j, var in enumerate(vp):  # assign values of vp and density to site
-            self.Mod['Vp'][j] = var  # vp values
-            self.Mod['Dn'][j] = dn[j]  # density values
+            self.Mod['Vs'] = model[:-1].tolist()
+            self.Mod['Vp'] = (self.Mod['Vs'] * self.vp_vs).tolist()
+            self.Mod['Dn'] = calc_density_profile(self.Mod['Vp']).tolist()
+            self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
+            self.Mod['Qp'] = self.Mod['Qs']
 
-        if self.litho:  # extra layer to consider - added half layer at base
-            for key in ['Vs', 'Vp', 'Dn']:
-                self.Mod[key][-1] = self.Mod[key][-2]  # make sure half layer = layer above (Thompson, 2012)
 
-        # perms = itertools.product([x for x in range(indexes)], repeat=dimensions)
 
-        # for i, perm in enumerate(perms):
-        #    model = pick_model(model_space, perm)
-        return None
+            return None
+
+
+
+        else:
+            for j, var in enumerate(model):  # assign vs values given in model to site
+                if j != len(model)-1:
+                    self.Mod['Vs'][j] = var
+                    self.Mod['Qs'][j] = model[-1]
+
+            vp = self.Mod['Vs'] * self.vp_vs   # use vp/vs to calculate Vp values such that physical properties are
+                                               # consistent in each layer
+            dn = calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000  # calculate density based on Vp
+            for j, var in enumerate(vp):  # assign values of vp and density to site
+                self.Mod['Vp'][j] = var  # vp values
+                self.Mod['Dn'][j] = dn[j]  # density values
+
+            if self.litho:  # extra layer to consider - added half layer at base
+                for key in ['Vs', 'Vp', 'Dn']:
+                    self.Mod[key][-1] = self.Mod[key][-2]  # make sure half layer = layer above (Thompson, 2012)
+
+            # perms = itertools.product([x for x in range(indexes)], repeat=dimensions)
+
+            # for i, perm in enumerate(perms):
+            #    model = pick_model(model_space, perm)
+            return None
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
                                   x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
