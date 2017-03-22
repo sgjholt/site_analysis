@@ -221,7 +221,7 @@ class Sim1D(sc.Site, sm.Site1D):
             # case 0 - 'Hl' has not been changed to represent sublayer thicknesses - not the correct length
             # must change Thicknesses, Density, Vp, Vs, Qp an Qs
             if not self.Mod['Hl'] == len(model)-1:
-                subl_factor = len(model)-1/len(self.Mod['Hl'])  # how many sub-layers were used
+                subl_factor = int(len(model)-1/len(self.Mod['Hl']))  # how many sub-layers were used
                 hl = (np.zeros(len(model)-1) for _ in range(6))
                 for i, hl in enumerate(self.Mod['Hl']):
                     for n in range(subl_factor):
