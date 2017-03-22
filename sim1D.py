@@ -329,17 +329,17 @@ class Sim1D(sc.Site, sm.Site1D):
 
         for n_layers in n_sub_layers:  # loop over
             self.site_model_reset()  # reset to original profile
-            self.model_space, orig_sub = uniform_sub_model_space(self.Mod['Vs'], pct_variation, steps, n_layers,
-                                                       const_q)  # build the model space
-
-            dimensions, indexes = self.model_space.shape  # log the dimensions of the model space
+            model_space, orig_sub = uniform_sub_model_space(self.Mod['Vs'], variation_pct=pct_variation, steps=steps, n_sub_layers=n_layers,
+                                                       const_q=const_q)  # build the model space
+            print(model_space, orig_sub)
+            dimensions, indexes = model_space.shape  # log the dimensions of the model space
 
             random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))  # pick indices at random
             # (from uniform distribution) and
             # build realisations from the model space
             realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
             for i, row in enumerate(random_choices):
-                realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
+                realisations[i] = pick_model(model_space, row)  # pick model from model space using indexes
 
             results = pd.DataFrame(
                 columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
