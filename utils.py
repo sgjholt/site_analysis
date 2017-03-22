@@ -156,7 +156,8 @@ def uniform_sub_model_space(original, variation_pct, steps, n_sub_layers, const_
     :param const_q: constant value for Q if not None - int/float
     :return: np.ndarray matrix containing the defined model space. Has shape = [(len(ufms)*N)-(N-1), steps+1]
     """
-    ufms = uniform_model_space(original, variation_pct, steps, const_q)
+    n_sub_layers += 1  # n_sub_layers = total n_layers in group
+    ufms = uniform_model_space(original, variation_pct, steps, const_q=const_q)
     sbms = np.zeros((((len(ufms)) * n_sub_layers) - (n_sub_layers - 1), steps + 1))
     orig_sub = np.zeros(((len(ufms)) * n_sub_layers) - (n_sub_layers - 1) - 1)
     for i, row in enumerate(ufms[:-1]):
