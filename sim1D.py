@@ -224,9 +224,12 @@ class Sim1D(sc.Site, sm.Site1D):
                 subl_factor = int((len(model)-1)/len(self.Mod['Hl']))
                 print(subl_factor)  # how many sub-layers were used
                 hl = np.zeros(len(model)-1)
-                for i, Hl in enumerate(self.Mod['Hl']):
+                vp_vs = np.zeros(len(model)-1)
+                for i, zipped in enumerate(zip(self.Mod['Hl'], self.vp_vs)):
+                    Hl, Vp_Vs = zipped
                     for n in range(subl_factor):
                         hl[i*subl_factor + n] = Hl/subl_factor
+                        vp_vs[i*subl_factor+n] = Vp_Vs
                 self.Mod['Hl'] = hl.tolist()
 
             self.Mod['Vs'] = model[:-1].tolist()
