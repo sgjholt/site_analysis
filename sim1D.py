@@ -230,6 +230,7 @@ class Sim1D(sc.Site, sm.Site1D):
                     for n in range(subl_factor):
                         hl[i*subl_factor + n] = Hl/subl_factor
                         vp_vs[i*subl_factor+n] = Vp_Vs
+                self.vp_vs = vp_vs
                 self.Mod['Hl'] = hl.tolist()
 
             self.Mod['Vs'] = model[:-1].tolist()
