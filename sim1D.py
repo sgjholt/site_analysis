@@ -304,7 +304,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         for n_layers in n_sub_layers:  # loop over
             self.site_model_reset()  # reset to original profile
-            self.model_space = uniform_sub_model_space(self.Mod['Vs'], pct_variation, steps, n_layers,
+            self.model_space, orig_sub = uniform_sub_model_space(self.Mod['Vs'], pct_variation, steps, n_layers,
                                                        const_q)  # build the model space
 
             dimensions, indexes = self.model_space.shape  # log the dimensions of the model space
@@ -323,10 +323,10 @@ class Sim1D(sc.Site, sm.Site1D):
             _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                           fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                                                           i_ang=i_ang, x_cor_range=x_cor_range)
-            print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]],
+            print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, orig_sub.tolist() + [self.Mod['Qs'][0]],
                                                                            total_mis, n_layers))
             # store result in pandas data frame
-            results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis, n_layers]
+            results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis, n_layers]
             # loop over the model realisations picked at random and calculate misfit
             for i, model in enumerate(realisations):
                 self.modify_site_model(model)  # change the model in Valerio's SiteModel class

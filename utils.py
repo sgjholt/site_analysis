@@ -158,12 +158,14 @@ def uniform_sub_model_space(original, variation_pct, steps, n_sub_layers, const_
     """
     ufms = uniform_model_space(original, variation_pct, steps, const_q)
     sbms = np.zeros((((len(ufms)) * n_sub_layers) - (n_sub_layers - 1), steps + 1))
+    orig_sub = np.zeros(((len(ufms)) * n_sub_layers) - (n_sub_layers - 1) - 1)
     for i, row in enumerate(ufms[:-1]):
         for n in range(n_sub_layers):
             sbms[i * n_sub_layers + n] = row
+            orig_sub[i * n_sub_layers + n] = original[i]
     sbms[-1] = ufms[-1]
 
-    return sbms
+    return sbms, orig_sub
 
 
 def search_lvl(model):
