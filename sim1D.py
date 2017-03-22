@@ -303,7 +303,7 @@ class Sim1D(sc.Site, sm.Site1D):
         # -------------------------------------run sub-layers-----------------------------------------------------#
 
         for n_layers in n_sub_layers:  # loop over
-            self.__add_site_profile()  # reset to original profile
+            self.site_model_reset()  # reset to original profile
             self.model_space = uniform_sub_model_space(self.Mod['Vs'], pct_variation, steps, n_layers,
                                                        const_q)  # build the model space
 
@@ -347,3 +347,11 @@ class Sim1D(sc.Site, sm.Site1D):
 
         else:
             return all_results  # self explanatory
+
+    def site_model_reset(self):
+        """
+        Reset the model to the original site model.
+        :return: None - inplace method
+        """
+        self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
+        self.__add_site_profile()
