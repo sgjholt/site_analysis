@@ -354,6 +354,7 @@ class Sim1D(sc.Site, sm.Site1D):
             results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis, n_layers]
             # loop over the model realisations picked at random and calculate misfit
             for i, model in enumerate(realisations):
+                print(model)
                 self.modify_site_model(model, sub_layers=True)  # change the model in Valerio's SiteModel class
                 # calculate misfit
                 _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
