@@ -15,8 +15,8 @@ __author__ = 'James Holt'
 
 
 def main():
-    site = 'FKSH16'
-    iterations = 5000
+    site = 'IWTH08'
+    iterations = 5
     name = site+'_rnd_ufm_'+'_'+str(iterations)+'_run_0'
     wd = '/data/share/Japan/SiteInfo/S_B/Repi_lessthan_300_depth_lessthan_25/'
     rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl/'.format(site)
