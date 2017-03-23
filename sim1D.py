@@ -47,9 +47,9 @@ class Sim1D(sc.Site, sm.Site1D):
 
         vels = self.get_velocity_profile(litho=self.litho)
         for i, hl in enumerate(vels['thickness']):
-            self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 10, 10])
+            self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 100, 100])
         if self.litho:  # add final half layer
-            self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 10, 10])
+            self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
 
     def elastic_forward_model(self, i_ang=0, elastic=True, plot_on=False, show=False, freqs=None):
         """
