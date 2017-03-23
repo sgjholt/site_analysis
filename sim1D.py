@@ -222,7 +222,7 @@ class Sim1D(sc.Site, sm.Site1D):
             # must change Thicknesses, Density, Vp, Vs, Qp an Qs
             if not self.Mod['Hl'] == len(model)-1:
                 subl_factor = int((len(model)-1)/len(self.Mod['Hl']))
-                print(subl_factor)  # how many sub-layers were used
+                # print(subl_factor)  # how many sub-layers were used
                 hl = np.zeros(len(model)-1)
                 vp_vs = np.zeros(len(model)-1)
                 for i, zipped in enumerate(zip(self.Mod['Hl'], self.vp_vs)):
