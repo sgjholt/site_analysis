@@ -239,11 +239,7 @@ class Sim1D(sc.Site, sm.Site1D):
             self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
             self.Mod['Qp'] = self.Mod['Qs']
 
-
-
             return None
-
-
 
         else:
             for j, var in enumerate(model):  # assign vs values given in model to site
@@ -359,7 +355,7 @@ class Sim1D(sc.Site, sm.Site1D):
             results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis, n_layers]
             # loop over the model realisations picked at random and calculate misfit
             for i, model in enumerate(realisations):
-                print(model)
+                # print(model)
                 self.modify_site_model(model, sub_layers=True)  # change the model in Valerio's SiteModel class
                 # calculate misfit
                 _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
@@ -373,7 +369,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         if save:  # save the file as csv
             # results.to_csv(self.simulation_path+'.csv')
-            print('Need to add save clause: returning dataframes')
+            print('Need to add save clause: returning Data-Frames')
             return all_results
 
         else:
@@ -386,3 +382,4 @@ class Sim1D(sc.Site, sm.Site1D):
         """
         self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
         self.__add_site_profile()
+        self.vp_vs = prof['vp'] / prof['vs']
