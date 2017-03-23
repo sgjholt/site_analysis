@@ -16,7 +16,7 @@ __author__ = 'James Holt'
 
 def main():
     site = 'IWTH08'
-    iterations = 5
+    iterations = 500
     name = site+'_rnd_ufm_'+'_'+str(iterations)+'_run_0'
     wd = '/data/share/Japan/SiteInfo/S_B/Repi_lessthan_300_depth_lessthan_25/'
     rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl/'.format(site)
@@ -40,7 +40,7 @@ def uniform_search(*args):
     site, wd, rd, pct, steps, iters, name, weights, lam, i_ang, x_range, const_q, elastic, cadet_correct, \
     fill_troughs, n_sub_layers = args
     titles = ['site', 'SB_dir', 'run_dir', 'pct_variation', 'model_steps', 'iterations', 'misfit_weights', 'lambda',
-              'i_ang', 'x_range_for_xcor', 'elastic', 'cadet_correct', 'fill_troughs', 'n_sub_layers']
+              'i_ang', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct', 'fill_troughs', 'n_sub_layers']
     vrs = [site, wd, rd, pct, steps, iters, weights, lam, i_ang, x_range, const_q, elastic, cadet_correct, fill_troughs,
            n_sub_layers]
 
