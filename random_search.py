@@ -57,7 +57,7 @@ def uniform_search(*args):
     site.uniform_sub_random_search(pct_variation=pct, steps=steps, iterations=iters, name=name, weights=weights,
                                    lam=lam,
                                    i_ang=i_ang, x_cor_range=x_range, const_q=const_q, elastic=elastic,
-                                   cadet_correct=cadet_correct, fill_troughs=fill_troughs, save=True,
+                                   cadet_correct=cadet_correct, fill_troughs_pct=fill_troughs, save=True,
                                    n_sub_layers=n_sub_layers)
 
 if __name__ == '__main__':
