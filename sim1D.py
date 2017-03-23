@@ -382,4 +382,4 @@ class Sim1D(sc.Site, sm.Site1D):
         """
         self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
         self.__add_site_profile()
-        self.vp_vs = prof['vp'] / prof['vs']
+        self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
