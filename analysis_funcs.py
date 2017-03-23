@@ -1,5 +1,5 @@
 from site_class import Site
-from find_peaks import detect_peaks
+# from find_peaks import detect_peaks
 from utils import rand_sites, fill_troughs
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,8 +54,8 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
     freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))
     if minimum is not None:
         subset = orig.query('total_mis == {0}'.format(orig.total_mis.min()))
-        model = subset.loc[subset.index[0]][0:-3]
-        site_obj.modify_site_model(model)
+        model = subset.loc[subset.index[0]][0:-4]
+        site_obj.modify_site_model(model, sub_layers=True)
         if fill_troughs_pct is not None:
             site_obj.GenFreqAx(freqs[0], freqs[1], freqs[2])
             plt.plot(freqs, fill_troughs(site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)[::, 0],
@@ -68,14 +68,14 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
     if thrsh is not None:
         subset = orig.query('total_mis <= {0}'.format(thrsh))
         for row in subset.iterrows():
-            model = [num[1] for num in row[1].iteritems()]
-            site_obj.modify_site_model(model[0:-3])
+            model = np.array([num[1] for num in row[1].iteritems()])
+            site_obj.modify_site_model(model[0:-4], sub_layers=True)
             if fill_troughs_pct is not None:
                 fwd = fill_troughs(site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)[::, 0],
                                    pct=fill_troughs_pct)
             else:
                 fwd = site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)
-            plt.loglog(site_obj.Amp['Freq'], fwd, label='mis={}'.format(round(model[-1], 3)))
+            plt.loglog(site_obj.Amp['Freq'], fwd, label='mis={}'.format(round(model[-2], 5)))
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct, show=True)
     plt.grid(which='both')
 

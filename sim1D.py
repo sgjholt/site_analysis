@@ -370,8 +370,8 @@ class Sim1D(sc.Site, sm.Site1D):
         if save:  # save the file as csv
             # results.to_csv(self.simulation_path+'.csv')
             print('Need to add save clause: returning Data-Frames')
-            return all_results
-
+            return (results.to_csv(self.simulation_path + 'n_sub_' + str(i) + '.csv') for i, results in
+                    enumerate(all_results))
         else:
             return all_results  # self explanatory
 
