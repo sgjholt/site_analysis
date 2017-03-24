@@ -15,7 +15,7 @@ __author__ = 'James Holt'
 
 
 def main():
-    site = 'IWTH08'
+    site = 'FKSH11'
     iterations = 10
     name = site+'_rnd_ufm_'+'_'+str(iterations)+'_run_0'
     wd = '/data/share/Japan/SiteInfo/S_B/FKSH11_synth_WN/'
