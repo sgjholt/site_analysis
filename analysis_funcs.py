@@ -55,7 +55,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
     freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))
     if minimum is not None:
         subset = orig.query('total_mis == {0}'.format(orig.total_mis.min()))
-        model = subset.loc[subset.index[0]][0:-4]
+        model = subset.loc[subset.index[0]][0:-4].values
         site_obj.modify_site_model(model, sub_layers=sub_layers)
         if fill_troughs_pct is not None:
             site_obj.GenFreqAx(freqs[0], freqs[1], freqs[2])
