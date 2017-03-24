@@ -244,7 +244,7 @@ class Sim1D(sc.Site, sm.Site1D):
             self.Mod['Dn'] = calc_density_profile(np.array(self.Mod['Vp'])).tolist()
             self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
             self.Mod['Qp'] = self.Mod['Qs']
-
+            print(self.Mod)
             return None
 
         else:
@@ -268,6 +268,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
             # for i, perm in enumerate(perms):
             #    model = pick_model(model_space, perm)
+            print(self.Mod)
             return None
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,

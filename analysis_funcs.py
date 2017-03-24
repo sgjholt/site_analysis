@@ -49,13 +49,14 @@ def vel_model_range(orig, subset, thresh, site, pct_v):
     plt.show()
 
 
-def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False, fill_troughs_pct=None):
+def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False,
+                       fill_troughs_pct=None, sub_layers=False):
     _freqs = site_obj.sb_ratio().columns.values.astype(float)  # str by default
     freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))
     if minimum is not None:
         subset = orig.query('total_mis == {0}'.format(orig.total_mis.min()))
         model = subset.loc[subset.index[0]][0:-4]
-        site_obj.modify_site_model(model, sub_layers=True)
+        site_obj.modify_site_model(model, sub_layers=sub_layers)
         if fill_troughs_pct is not None:
             site_obj.GenFreqAx(freqs[0], freqs[1], freqs[2])
             plt.plot(freqs, fill_troughs(site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)[::, 0],
@@ -69,7 +70,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         subset = orig.query('total_mis <= {0}'.format(thrsh))
         for row in subset.iterrows():
             model = np.array([num[1] for num in row[1].iteritems()])
-            site_obj.modify_site_model(model[0:-4], sub_layers=True)
+            site_obj.modify_site_model(model[0:-4], sub_layers=sub_layers)
             if fill_troughs_pct is not None:
                 fwd = fill_troughs(site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)[::, 0],
                                    pct=fill_troughs_pct)
