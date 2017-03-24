@@ -102,7 +102,7 @@ def uniform_model_space(original, variation_pct, steps, vs_only=False, const_q=N
 
     if const_q is not None:
         return np.concatenate((np.matrix.round(model_space, 0), np.matrix.round(
-            np.zeros(steps+1)+10, const_q)[None, :]))
+            np.zeros(steps + 1) + const_q, 3)[None, :]))
     else:
         return np.concatenate((np.matrix.round(model_space, 0), np.matrix.round(
             np.logspace(np.log10(50), np.log10(2), steps+1, base=10), 2)[None, :]))

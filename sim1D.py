@@ -5,6 +5,7 @@ import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import scipy.stats as stats
 from utils import binning, pick_model, uniform_model_space, df_cols, calc_density_profile, exp_cdf, fill_troughs, \
     uniform_sub_model_space
 # import itertools
@@ -125,14 +126,19 @@ class Sim1D(sc.Site, sm.Site1D):
             predicted = fill_troughs(predicted, fill_troughs_pct)
 
         log_residuals = (np.log(predicted) - observed)/std  # weighted by stdv
-        log_residuals /= np.abs(log_residuals).max()  # normalise between 0-1
+
+        if log_residuals.min() < 0:  # if lowest is negative need to apply linear shift to 0
+            log_residuals -= log_residuals.min()
+
+        log_residuals /= log_residuals.max()  # normalise between 0-1
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5  # amplitude quality of fit
         # re-sample the predicted and observed signals to the range specified for x_correlation
         x_cor_p = np.log(predicted[(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])])
         x_cor_o = observed[(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])]
         # Perform the x_correlation - take arg max and subtract half the total length to get the 'frequency lag'
-        x_cor = np.correlate(x_cor_o, x_cor_p, 'full')  # do x_corr, store in memory - efficient for large sims
+        x_cor = np.correlate(x_cor_o / np.mean(x_cor_o), x_cor_p / np.mean(x_cor_p),
+                             'full')  # do x_corr, store in memory - efficient for large sims
         x_cor = (x_cor.argmax() - (len(x_cor)-1)/2)*dt  # len -1 because the signal index begins counting at 0
         # Calculate total misfit in both amplitude and frequency (fitting in both dimensions)
         total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor), lam=lam)*weights[1]
@@ -266,7 +272,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
                                   x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
-                                  fill_troughs_pct=None, save=False):
+                                  fill_troughs_pct=None, save=False, gaussian_sampling=True):
         """
         UNFINISHED
 
@@ -294,14 +300,22 @@ class Sim1D(sc.Site, sm.Site1D):
 
         dimensions, indexes = self.model_space.shape  # log the dimensions of the model space
 
-        random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))  # pick indices at random
+        if gaussian_sampling:
+            lower, upper = 0, indexes - 1
+            mu, sigma = (indexes - 1) / 2, indexes * 0.2
+            pdf = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+            random_choices = np.round(pdf.rvs((iterations, dimensions)), 0).astype(int)
+
+        else:
+            random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))  # pick indices at random
         # (from uniform distribution) and
         # build realisations from the model space
         realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
         for i, row in enumerate(random_choices):
             realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
+        if not save:  # store results to return back to me - otherwise just using unnecessary cpu/memory
+            all_results = []
 
-        all_results = []
         results = pd.DataFrame(
             columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
         results.index.name = 'trial'
@@ -324,8 +338,10 @@ class Sim1D(sc.Site, sm.Site1D):
             # store result in data frame
             results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis, 0]
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, 0))
-        all_results.append(results)
-
+        if save:
+            results.to_csv(self.simulation_path + 'n_sub_' + str(0) + '.csv')
+        else:
+            all_results.append(results)
         # -------------------------------------run sub-layers-----------------------------------------------------#
 
         for n_layers in n_sub_layers:  # loop over
@@ -335,7 +351,15 @@ class Sim1D(sc.Site, sm.Site1D):
 
             dimensions, indexes = model_space.shape  # log the dimensions of the model space
 
-            random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))  # pick indices at random
+            if gaussian_sampling:
+                lower, upper = 0, indexes - 1
+                mu, sigma = (indexes - 1) / 2, indexes * 0.2
+                pdf = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+                random_choices = np.round(pdf.rvs((iterations, dimensions)), 0).astype(int)
+
+
+            else:
+                random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))  # pick indices at random
             # (from uniform distribution) and
             # build realisations from the model space
             realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
@@ -365,15 +389,15 @@ class Sim1D(sc.Site, sm.Site1D):
                 # store result in data frame
                 results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis, n_layers]
                 print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, n_layers))
-            all_results.append(results)
 
-        if save:  # save the file as csv
-            # results.to_csv(self.simulation_path+'.csv')
-            print('Need to add save clause: returning Data-Frames')
-            [results.to_csv(self.simulation_path + 'n_sub_' + str(i) + '.csv') for i, results in enumerate(all_results)]
+            if save:  # save the file as csv
+                # results.to_csv(self.simulation_path+'.csv')
+                # print('Need to add save clause: returning Data-Frames')
+                results.to_csv(self.simulation_path + 'n_sub_' + str(n_sub_layers) + '.csv')
+            else:
+                all_results.append(results)
 
-        else:
-            return all_results  # self explanatory
+
 
     def site_model_reset(self):
         """
