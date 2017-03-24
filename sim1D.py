@@ -393,7 +393,7 @@ class Sim1D(sc.Site, sm.Site1D):
             if save:  # save the file as csv
                 # results.to_csv(self.simulation_path+'.csv')
                 # print('Need to add save clause: returning Data-Frames')
-                results.to_csv(self.simulation_path + 'n_sub_' + str(n_sub_layers) + '.csv')
+                results.to_csv(self.simulation_path + 'n_sub_' + str(n_layers) + '.csv')
             else:
                 all_results.append(results)
 
