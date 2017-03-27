@@ -230,8 +230,8 @@ class Sim1D(sc.Site, sm.Site1D):
             # must change Thicknesses, Density, Vp, Vs, Qp an Qs
             if len(self.Mod['Hl']) != (len(model) - 1):
                 print('Calculating new layer thicknesses for given sub-layers')
-                subl_factor = int((len(model)-1)/len(self.Mod['Hl']))
-                # print(subl_factor)  # how many sub-layers were used
+                subl_factor = int((len(model) - 1) / len(self.Mod['Hl']) - 1)
+                print(subl_factor)  # how many sub-layers were used
                 # # hl = np.zeros(len(model)-1)
                 hl = []
                 # # vp_vs = np.zeros(len(model)-1)
