@@ -231,7 +231,7 @@ class Sim1D(sc.Site, sm.Site1D):
             if len(self.Mod['Hl']) != (len(model) - 1):
                 print('Calculating new layer thicknesses for given sub-layers')
                 subl_factor = int((len(model) - 1) / (len(self.Mod['Hl']) - 1))
-                print(subl_factor)  # how many sub-layers were used
+                # print(subl_factor)  # how many sub-layers were used
                 # # hl = np.zeros(len(model)-1)
                 hl = []
                 # # vp_vs = np.zeros(len(model)-1)
@@ -244,7 +244,7 @@ class Sim1D(sc.Site, sm.Site1D):
                             vp_vs.append(Vp_Vs)
                 hl.append(self.Mod['Hl'][-1])  # add the half space layer
                 vp_vs.append(self.vp_vs[-1])  # vp/vs ratio for half space layer
-                print(len(vp_vs), len(hl))
+                #print(len(vp_vs), len(hl))
                 self.vp_vs = np.array(vp_vs)  # assign vp_vs back to self
                 self.Mod['Hl'] = hl  # assign layer thicknesses back to self
 
