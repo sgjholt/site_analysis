@@ -228,18 +228,24 @@ class Sim1D(sc.Site, sm.Site1D):
             # self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
             # case 0 - 'Hl' has not been changed to represent sublayer thicknesses - not the correct length
             # must change Thicknesses, Density, Vp, Vs, Qp an Qs
-            if not self.Mod['Hl'] == len(model)-1:
+            if not len(self.Mod['Hl']) == len(model) - 1:
+                print('Calculating new layer thicknesses for given sub-layers')
                 subl_factor = int((len(model)-1)/len(self.Mod['Hl']))
                 # print(subl_factor)  # how many sub-layers were used
-                hl = np.zeros(len(model)-1)
-                vp_vs = np.zeros(len(model)-1)
+                # # hl = np.zeros(len(model)-1)
+                hl = []
+                # # vp_vs = np.zeros(len(model)-1)
+                vp_vs = []
                 for i, zipped in enumerate(zip(self.Mod['Hl'], self.vp_vs)):
-                    Hl, Vp_Vs = zipped
-                    for n in range(subl_factor):
-                        hl[i*subl_factor + n] = Hl/subl_factor
-                        vp_vs[i*subl_factor+n] = Vp_Vs
-                self.vp_vs = vp_vs
-                self.Mod['Hl'] = hl.tolist()
+                    if i < len(self.Mod['Hl']) - 1:
+                        Hl, Vp_Vs = zipped
+                        for n in range(subl_factor):
+                            hl.append(Hl / subl_factor)
+                            vp_vs.append(Vp_Vs)
+                hl.append(self.Mod['Hl'][-1])  # add the half space layer
+                vp_vs.append(self.vp_vs[-1])  # vp/vs ratio for half space layer
+                self.vp_vs = np.array(vp_vs)  # assign vp_vs back to self
+                self.Mod['Hl'] = hl  # assign layer thicknesses back to self
 
             self.Mod['Vs'] = model[:-1].tolist()
             self.Mod['Vp'] = (self.Mod['Vs'] * self.vp_vs).tolist()
