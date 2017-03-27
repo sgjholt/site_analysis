@@ -212,7 +212,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         if save:  # save the file as csv
             results.to_csv(self.simulation_path+'.csv')
-        else:
+        if not save:
             return results  # self explanatory
 
     def modify_site_model(self, model, sub_layers=False):
