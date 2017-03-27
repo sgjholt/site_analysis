@@ -260,7 +260,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         else:
             for j, var in enumerate(model):  # assign vs values given in model to site
-                if j != len(model) - 2:
+                if j != len(model) - 1:
                     self.Mod['Vs'][j] = var
                     self.Mod['Qs'][j] = model[-1]
 
