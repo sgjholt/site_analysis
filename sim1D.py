@@ -129,8 +129,10 @@ class Sim1D(sc.Site, sm.Site1D):
 
         # if log_residuals.min() < 0:  # if lowest is negative need to apply linear shift to 0
         #    log_residuals -= log_residuals.min()
-
-        log_residuals /= np.abs(log_residuals).max()  # normalise between -1 to 1
+        if np.abs(log_residuals).max() < 1:
+            log_residuals /= 1
+        else:
+            log_residuals /= np.abs(log_residuals).max()  # normalise between -1 to 1
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5  # amplitude GOF between 0-1
         # re-sample the predicted and observed signals to the range specified for x_correlation
