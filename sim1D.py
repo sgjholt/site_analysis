@@ -245,7 +245,7 @@ class Sim1D(sc.Site, sm.Site1D):
             self.Mod['Dn'] = (calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000).tolist()
             self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
             self.Mod['Qp'] = self.Mod['Qs']
-            print(self.Mod)
+            # print(self.Mod)
             return None
 
         else:
