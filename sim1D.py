@@ -220,6 +220,7 @@ class Sim1D(sc.Site, sm.Site1D):
         This function will modify the site model based on a specified Vs profile plus Qs value (model[-1])
 
         :param model: np.ndarray object containing Vs values in m/s model[:-1] and model[-1] is a Qs value
+        :param sub_layers: does the model need to adapt to a number of sub-layers?
         :return: None - this is an inplace method
         """
         if sub_layers:  # need to modify the whole model to account for addition of sub-layers
