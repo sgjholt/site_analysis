@@ -127,18 +127,19 @@ class Sim1D(sc.Site, sm.Site1D):
 
         log_residuals = (np.log(predicted) - observed)/std  # weighted by stdv
 
-        if log_residuals.min() < 0:  # if lowest is negative need to apply linear shift to 0
-            log_residuals -= log_residuals.min()
+        # if log_residuals.min() < 0:  # if lowest is negative need to apply linear shift to 0
+        #    log_residuals -= log_residuals.min()
 
-        log_residuals /= log_residuals.max()  # normalise between 0-1
+        log_residuals /= np.abs(log_residuals).max()  # normalise between -1 to 1
 
-        log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5  # amplitude quality of fit
+        log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5  # amplitude GOF between 0-1
         # re-sample the predicted and observed signals to the range specified for x_correlation
         x_cor_p = np.log(predicted[(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])])
         x_cor_o = observed[(_freqs >= x_cor_range[0]) & (_freqs <= x_cor_range[1])]
         # Perform the x_correlation - take arg max and subtract half the total length to get the 'frequency lag'
         x_cor = np.correlate(x_cor_o / np.mean(x_cor_o), x_cor_p / np.mean(x_cor_p),
                              'full')  # do x_corr, store in memory - efficient for large sims
+        max_xcor = x_cor.max()  # max value
         x_cor = (x_cor.argmax() - (len(x_cor)-1)/2)*dt  # len -1 because the signal index begins counting at 0
         # Calculate total misfit in both amplitude and frequency (fitting in both dimensions)
         total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor), lam=lam)*weights[1]
@@ -269,7 +270,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
             # for i, perm in enumerate(perms):
             #    model = pick_model(model_space, perm)
-            print(self.Mod)
+            # print(self.Mod)
             return None
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
