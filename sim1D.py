@@ -315,8 +315,9 @@ class Sim1D(sc.Site, sm.Site1D):
         realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
         for i, row in enumerate(random_choices):
             realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
-        if not save:  # store results to return back to me - otherwise just using unnecessary cpu/memory
-            all_results = []
+
+        # store results to return back to me - otherwise just using unnecessary cpu/memory
+        all_results = []
 
         results = pd.DataFrame(
             columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
@@ -342,7 +343,7 @@ class Sim1D(sc.Site, sm.Site1D):
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, 0))
         if save:
             results.to_csv(self.simulation_path + 'n_sub_' + str(0) + '.csv')
-        else:
+        if not save:
             all_results.append(results)
         # -------------------------------------run sub-layers-----------------------------------------------------#
 
@@ -396,10 +397,8 @@ class Sim1D(sc.Site, sm.Site1D):
                 # results.to_csv(self.simulation_path+'.csv')
                 # print('Need to add save clause: returning Data-Frames')
                 results.to_csv(self.simulation_path + 'n_sub_' + str(n_layers) + '.csv')
-            else:
+            if not save:
                 all_results.append(results)
-
-
 
     def site_model_reset(self):
         """
