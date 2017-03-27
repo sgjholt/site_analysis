@@ -302,6 +302,9 @@ class Sim1D(sc.Site, sm.Site1D):
         :return:
         """
         # -------------------------------------run 0-----------------------------------------------------#
+        # SETUP START #
+        if const_q is not None:
+            self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
 
         self.simulation_path = self.run_dir + name
 
@@ -330,6 +333,9 @@ class Sim1D(sc.Site, sm.Site1D):
         results = pd.DataFrame(
             columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
         results.index.name = 'trial'
+
+        # SETUP END #
+
         # run original model
         _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                       fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
@@ -351,23 +357,26 @@ class Sim1D(sc.Site, sm.Site1D):
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, 0))
         if save:
             results.to_csv(self.simulation_path + 'n_sub_' + str(0) + '.csv')
-        if not save:
+        else:
             all_results.append(results)
         # -------------------------------------run sub-layers-----------------------------------------------------#
 
-        for n_layers in n_sub_layers:  # loop over
+        for n_layers in n_sub_layers:  # loop over sub-layer trials
+            # SETUP START #
             self.site_model_reset()  # reset to original profile
-            model_space, orig_sub = uniform_sub_model_space(self.Mod['Vs'], variation_pct=pct_variation, steps=steps, n_sub_layers=n_layers,
-                                                       const_q=const_q)  # build the model space
+            if const_q is not None:  # ensure Q is set correctly if constant
+                self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
+            # build the model space
+            model_space, orig_sub = uniform_sub_model_space(self.Mod['Vs'], variation_pct=pct_variation, steps=steps,
+                                                            n_sub_layers=n_layers, const_q=const_q)
 
             dimensions, indexes = model_space.shape  # log the dimensions of the model space
 
-            if gaussian_sampling:
+            if gaussian_sampling:  # sample indexes in accordance to truncated Gaussian distribution
                 lower, upper = 0, indexes - 1
                 mu, sigma = (indexes - 1) / 2, indexes * 0.2
                 pdf = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
                 random_choices = np.round(pdf.rvs((iterations, dimensions)), 0).astype(int)
-
 
             else:
                 random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))  # pick indices at random
@@ -380,10 +389,12 @@ class Sim1D(sc.Site, sm.Site1D):
             results = pd.DataFrame(
                 columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
             results.index.name = 'trial'
+            # SETUP END #
             # run original model
             _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                           fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                                                           i_ang=i_ang, x_cor_range=x_cor_range)
+
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, orig_sub.tolist() + [self.Mod['Qs'][0]],
                                                                            total_mis, n_layers))
             # store result in pandas data frame
@@ -395,8 +406,7 @@ class Sim1D(sc.Site, sm.Site1D):
                 # calculate misfit
                 _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                               fill_troughs_pct=fill_troughs_pct, weights=weights,
-                                                              lam=lam,
-                                                              i_ang=i_ang, x_cor_range=x_cor_range)
+                                                              lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
                 # store result in data frame
                 results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis, n_layers]
                 print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, n_layers))
@@ -405,8 +415,10 @@ class Sim1D(sc.Site, sm.Site1D):
                 # results.to_csv(self.simulation_path+'.csv')
                 # print('Need to add save clause: returning Data-Frames')
                 results.to_csv(self.simulation_path + 'n_sub_' + str(n_layers) + '.csv')
-            if not save:
+            else:
                 all_results.append(results)
+        if not save:
+            return results
 
     def site_model_reset(self):
         """
