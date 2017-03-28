@@ -365,7 +365,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
         for n_layers in n_sub_layers:  # loop over sub-layer trials
             # SETUP START #
-            self.site_model_reset()  # reset to original profile
+            self.reset_site_model()  # reset to original profile
             if const_q is not None:  # ensure Q is set correctly if constant
                 self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
             # build the model space
