@@ -79,7 +79,7 @@ def pick_model(model_space, perm):
     return np.array(current_perm)
 
 
-def uniform_model_space(original, variation_pct, steps, vs_only=False, const_q=None):
+def uniform_model_space(original, variation_pct, steps, vs_only=False, const_q=None, lowest=10):
     """
     Defines the model space to be searched from given original values. The model space range is defined by a percentage
     set by the user. The model space covers the whole range +to- this percentage of the original value in a set number
@@ -89,13 +89,23 @@ def uniform_model_space(original, variation_pct, steps, vs_only=False, const_q=N
     :param variation_pct: single percentage value for extremes of search (e.g 50) - int/float
     :param steps: single value for number of values to generate as a factor of 5,10 is optimal - int/float
     :param const_q: constant value for Q if not None
+    :param lowest: lowest value if single is passed through for model range - instead of pct shift
     :return: np.ndarray matrix containing the defined model space
     """
     model_space = np.zeros((len(original), steps+1))
     for i, row in enumerate(original):
-        low = row - row*variation_pct/100
-        high = row + row*variation_pct/100
-        model_space[i] = np.linspace(high, low, steps+1)
+        if type(variation_pct) is float:
+            if row - variation_pct <= 0:
+                model_space[i] = np.hstack((np.linspace(row - (variation_pct + (
+                    row - variation_pct - lowest)), row, int(steps / 2) + 1)[:-1], np.linspace(
+                    row, row + variation_pct, int(steps / 2) + 1)))[::-1]
+                # model_space[i] = np.linspace(row+variation_pct, row-(variation_pct+(row-variation_pct-lowest)), steps+1)
+            else:
+                model_space[i] = np.linspace(row + variation_pct, row - variation_pct, steps + 1)
+        else:
+            low = row - row * variation_pct / 100
+            high = row + row * variation_pct / 100
+            model_space[i] = np.linspace(high, low, steps + 1)
 
     if vs_only:
         return np.matrix.round(model_space, 0)
