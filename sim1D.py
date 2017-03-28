@@ -422,7 +422,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if not save:
             return results
 
-    def site_model_reset(self):
+    def reset_site_model(self):
         """
         Reset the model to the original site model.
         :return: None - inplace method
