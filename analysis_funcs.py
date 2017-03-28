@@ -122,7 +122,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         plt.show()
 
 
-def plot
+# def plot
 
 
 
