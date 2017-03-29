@@ -85,7 +85,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
 
     if thrsh is not None:
-        subset = orig.query('total_mis <= {0}'.format(thrsh))
+        subset = orig.query('amp_mis <= {0}'.format(thrsh))
         for row in subset.iterrows():
             model = np.array([num[1] for num in row[1].iteritems()])
             site_obj.modify_site_model(model[0:-4], sub_layers=sub_layers)
