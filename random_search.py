@@ -9,14 +9,15 @@
 import sim1D as sd
 import time
 import os
+import sys
 
 __author__ = 'James Holt'
 # ---------------------------------modules--------------------------------------#
 
 
 def main():
-    site = 'IWTH08'
-    iterations = 5000
+    site = sys.argv[1]
+    iterations = sys.argv[2]
     name = site+'_rnd_ufm_'+'_'+str(iterations)+'_run_0'
     wd = '/data/share/Japan/SiteInfo/S_B/Repi_lessthan_300_depth_lessthan_25/'
     rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl/'.format(site)
