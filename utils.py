@@ -128,6 +128,9 @@ def correlated_sub_model_space(original, variation_pct, cor_pct, steps, const_q=
     :param const_q:
     :return:
     """
+    if type(original) is list:
+        original = np.array(original)
+
     signs = search_lvl(original)  # when sign[i] = 1/-1 positive/negative corr between layers
     ufms = uniform_model_space(original, variation_pct, steps, vs_only=True)
     # print('ufms={0}'.format(ufms))

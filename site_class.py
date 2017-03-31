@@ -227,7 +227,9 @@ class Site:
     def add_metadata(self, metadata_dict):
         self.metadata.update(metadata_dict)
 
-
+    @staticmethod
+    def show_plot():
+        plt.show()
 # ---------------------------------functions--------------------------------------#
 
 
@@ -254,3 +256,4 @@ def can_qc(parent_directory, site_name):
     else:
         print('QC not available for ' + site_name)
         return None
+
