@@ -155,6 +155,8 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.subplot(212)
             plt.plot(_freqs, observed, 'k')
             plt.plot(_freqs, np.log(predicted), 'r')
+            plt.xlabel('Frequency [Hz]')
+            plt.ylabel('SB Ratio / SHTF')
             plt.show()
             #self.elastic_forward_model(elastic=elastic, plot_on=True, freqs=freqs)
             #self.plot_sb(stdv=(1,))
