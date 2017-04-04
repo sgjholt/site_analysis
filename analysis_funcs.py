@@ -59,7 +59,7 @@ def vel_model_range(orig, subset, thresh, site_obj, pct_v, save=False, user='sgj
         plt.show()
 
 
-def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False,
+def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None, elastic=False, cadet_correct=False,
                        fill_troughs_pct=None, sub_layers=True, save=False, dpi=None, user='sgjholt', subplots=False):
 
     _freqs = site_obj.sb_ratio().columns.values.astype(float)  # str by default
@@ -72,20 +72,20 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
 
 
     if minimum is not None:
-        subset = orig.query('total_mis == {0}'.format(orig.total_mis.min()))
+        subset = orig.query('{0} == {1}'.format(mis, orig.total_mis.min()))
         model = subset.loc[subset.index[0]][0:-4].values
         site_obj.modify_site_model(model, sub_layers=sub_layers)
         if fill_troughs_pct is not None:
             site_obj.GenFreqAx(freqs[0], freqs[1], freqs[2])
-            plt.plot(freqs, fill_troughs(site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)[::, 0],
+            plt.plot(freqs, fill_troughs(site_obj.elastic_forward_model(elastic=elastic)[::, 0],
                                          pct=fill_troughs_pct))
         else:
-            site_obj.elastic_forward_model(elastic=elastic, plot_on=True, freqs=freqs)
+            site_obj.elastic_forward_model(elastic=elastic, plot_on=True)
 
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
 
     if thrsh is not None:
-        subset = orig.query('amp_mis <= {0}'.format(thrsh))
+        subset = orig.query('{0} <= {1}'.format(mis, thrsh))
         for row in subset.iterrows():
             model = np.array([num[1] for num in row[1].iteritems()])
             site_obj.modify_site_model(model[0:-4], sub_layers=sub_layers)
@@ -93,7 +93,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
                 fwd = fill_troughs(site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)[::, 0],
                                    pct=fill_troughs_pct)
             else:
-                fwd = site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)
+                fwd = site_obj.elastic_forward_model(elastic=elastic)
             plt.loglog(site_obj.Amp['Freq'], fwd, label='mis={}'.format(round(model[-2], 5)))
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
     ax.grid(which='minor', alpha=0.5)
