@@ -367,6 +367,10 @@ class Sim1D(sc.Site, sm.Site1D):
             _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                           fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                                                           i_ang=i_ang, x_cor_range=x_cor_range)
+            if debug:
+                self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                            fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
             # store result in data frame
             results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis, 0]
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, 0))
@@ -426,6 +430,10 @@ class Sim1D(sc.Site, sm.Site1D):
                 _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                               fill_troughs_pct=fill_troughs_pct, weights=weights,
                                                               lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
+                if debug:
+                    self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                                i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
                 # store result in data frame
                 results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis, n_layers]
                 print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, n_layers))
