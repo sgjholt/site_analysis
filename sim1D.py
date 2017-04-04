@@ -125,7 +125,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if fill_troughs_pct is not None:
             predicted = fill_troughs(predicted, fill_troughs_pct)
 
-        log_residuals = (np.log(predicted) - observed)/std  # weighted by stdv
+        log_residuals = (np.log(predicted) - observed) #/std  # weighted by stdv
 
         # if log_residuals.min() < 0:  # if lowest is negative need to apply linear shift to 0
         #    log_residuals -= log_residuals.min()
