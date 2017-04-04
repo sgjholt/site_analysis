@@ -292,7 +292,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
                                   x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
-                                  fill_troughs_pct=None, save=False, gaussian_sampling=True):
+                                  fill_troughs_pct=None, save=False, gaussian_sampling=True, debug=False):
         """
         UNFINISHED
 
@@ -309,6 +309,7 @@ class Sim1D(sc.Site, sm.Site1D):
         :param cadet_correct: apply Cadet et al. 2012 correction to observed SB ratio
         :param fill_troughs_pct:
         :param save: save the result as csv file
+        :param: debug: bool: If true perform debugging actions. 
         :return:
         """
         # -------------------------------------run 0-----------------------------------------------------#
@@ -350,6 +351,10 @@ class Sim1D(sc.Site, sm.Site1D):
         _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                       fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                                                       i_ang=i_ang, x_cor_range=x_cor_range)
+        if debug:
+            self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                        fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                        i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
         print(
             "Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]], total_mis,
                                                                      0))
@@ -404,6 +409,10 @@ class Sim1D(sc.Site, sm.Site1D):
             _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                           fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                                                           i_ang=i_ang, x_cor_range=x_cor_range)
+            if debug:
+                self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                            fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
 
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, orig_sub.tolist() + [self.Mod['Qs'][0]],
                                                                            total_mis, n_layers))
