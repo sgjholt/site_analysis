@@ -150,15 +150,17 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.figure(figsize=(10, 10))
             plt.subplot(211)
             # bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)  # bin only when plotting
-            plt.title('{0} : Log Residuals - Misfit: {1}.'.format(self.site, round(total_misfit), 5))
+            plt.title('{0} : Log Residuals - Misfit: {1}.'.format(self.site, round(total_misfit, 5)))
             plt.semilogx(_freqs, log_residuals, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('Log Residuals')
 
             plt.subplot(212)
-            self.elastic_forward_model(elastic=elastic, plot_on=True, freqs=freqs)
-            self.plot_sb(stdv=(1,))
+            plt.plot(_freqs, observed, 'k')
+            plt.plot(_freqs, np.log(predicted), 'r')
+            #self.elastic_forward_model(elastic=elastic, plot_on=True, freqs=freqs)
+            #self.plot_sb(stdv=(1,))
 
 
         else:
