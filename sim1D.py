@@ -52,7 +52,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if self.litho:  # add final half layer
             self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
 
-    def elastic_forward_model(self, i_ang=0, elastic=True, plot_on=False, show=False, freqs=None):
+    def elastic_forward_model(self, i_ang=0, elastic=True, plot_on=False, show=False):
         """
 
         :param i_ang:
@@ -66,34 +66,30 @@ class Sim1D(sc.Site, sm.Site1D):
             print('Cannot model - no velocity model')
             return None
 
-        if freqs is None:
-            self.GenFreqAx(0.1, 25, 1000)
-        else:
-            self.GenFreqAx(freqs[0], freqs[1], freqs[2])
+        if len(self.Amp['Freq']) == 0:
+            self.Amp['Freq'] = self.sb_ratio().columns.values.astype(float).tolist()
 
         self.ComputeSHTF(i_ang, elastic)
 
-        if self.litho:
-            model = 'lithology'
-        else:
-            model = 'standard'
-
-        if elastic:
-            types = 'Elastic'
-        else:
-            types = 'Anelastic'
-
         if plot_on:
+            if self.litho:
+                model = 'lithology'
+            else:
+                model = 'standard'
+
+            if elastic:
+                types = 'Elastic'
+            else:
+                types = 'Anelastic'
             plt.title('{0} : 1D Linear SHTF'.format(self.site))
             plt.loglog(self.Amp['Freq'], np.abs(self.Amp['Shtf']), label='SHTF: {0} - {1}'.format(types, model))
             plt.hlines(1, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('SHTF')
-
+            if show:
+                plt.show()
         else:
             return np.abs(self.Amp['Shtf'])
-        if show:
-            plt.show()
 
     def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, x_cor_range=(0, 25), elastic=True, plot_on=False, show=False, cadet_correct=False, fill_troughs_pct=None):
         """
@@ -115,9 +111,9 @@ class Sim1D(sc.Site, sm.Site1D):
 
         observed = sb_table.loc['mean'].values   # observed (mean of ln values) (normally distributed in logspace)
         std = sb_table.loc['std'].values  # std of ln values
-        _freqs = sb_table.columns.values.astype(float)  # str by default
-        freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
-        predicted = self.elastic_forward_model(i_ang, elastic, freqs=freqs)[::, 0]  # calc fwd model
+        # _freqs = sb_table.columns.values.astype(float)  # str by default
+        # freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
+        predicted = self.elastic_forward_model(i_ang, elastic)[::, 0]  # calc fwd model
 
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
