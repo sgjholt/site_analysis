@@ -147,12 +147,19 @@ class Sim1D(sc.Site, sm.Site1D):
         total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor), lam=lam)*weights[1]
 
         if plot_on:
-            bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)  # bin only when plotting
+            plt.figure(figsize=(10, 10))
+            plt.subplot(211)
+            # bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)  # bin only when plotting
             plt.title('{0} : Log Residuals - Misfit: {1}.'.format(self.site, round(total_misfit), 5))
-            plt.semilogx(bin_freqs, bin_log_resids, 'ko', label='Residuals')
+            plt.semilogx(_freqs, log_residuals, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('Log Residuals')
+
+            plt.subplot(212)
+            self.elastic_forward_model(elastic=elastic, plot_on=True, freqs=freqs)
+
+
         else:
             return log_residuals, log_rms_misfit, x_cor, total_misfit
         if show:
