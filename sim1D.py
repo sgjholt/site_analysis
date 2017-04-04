@@ -158,6 +158,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
             plt.subplot(212)
             self.elastic_forward_model(elastic=elastic, plot_on=True, freqs=freqs)
+            self.plot_sb(stdv=(1,))
 
 
         else:
