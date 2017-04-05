@@ -112,7 +112,7 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
 
     matplotlib.rc('font', **font)
     matplotlib.rc('lines', lw=2)
-    ax.set_xticks([0.1, 0.5, 1, 5, 10, 15, 20, 25])
+    ax.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
     plt.legend(loc=2)
 
     if save:
