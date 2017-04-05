@@ -68,6 +68,7 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
     if not subplots:
         fig = plt.figure(figsize=(16, 12))
         ax = fig.add_subplot(1, 1, 1)
+        site_obj.elastic_forward_model(elastic=False, plot_on=True)
 
 
 
@@ -112,6 +113,7 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
     matplotlib.rc('font', **font)
     matplotlib.rc('lines', lw=2)
     ax.set_xticks([0.1, 0.5, 1, 5, 10, 15, 20, 25])
+    plt.legend(loc=2)
 
     if save:
         plt.savefig('/home/{3}/plots/synthetic_tests/{0}-MC-{1}-iterations-Misfit-loe{2}-Sub-layers-{4}.pdf'.format(
