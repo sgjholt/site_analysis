@@ -33,14 +33,18 @@ def vel_model_range(orig, subset, thresh, site_obj, pct_v, save=False, user='sgj
     :return:
     """
     layers = [x for x in range(1, len(orig.loc[0][0:-5]) + 1)]
+    layers.append(layers[-1] + 1)
 
     plt.figure(figsize=(8, 13))
 
-    plt.step(orig.loc[0][0:-5], layers, 'k', linewidth=2, label='orig')
-    plt.step(orig.loc[0][0:-5] * (1 - pct_v / 100), layers, 'r', linestyle='dashed', label='model range')
-    plt.step(orig.loc[0][0:-5] * (1 + pct_v / 100), layers, 'r', linestyle='dashed')
-    plt.step(subset.min(axis=0)[0:-5], layers, 'b', label='range < tot_mis={}'.format(thresh))
-    plt.step(subset.max(axis=0)[0:-5], layers, 'b')
+    vels = np.array(orig.loc[0][0:-5].values.tolist() + [orig.loc[0][0:-5].values[-1]])
+
+    plt.step(vels, layers, 'k', linewidth=2, label='orig')
+    plt.step(vels * (1 - pct_v / 100), layers, 'r', linestyle='dashed', label='model range')
+    plt.step(vels * (1 + pct_v / 100), layers, 'r', linestyle='dashed')
+    plt.step(subset.min(axis=0)[0:-5].values.tolist() + [subset.min(axis=0)[0:-5].values[-1]], layers, 'b',
+             label='range < tot_mis={}'.format(thresh))
+    plt.step(subset.max(axis=0)[0:-5].values.tolist() + [subset.max(axis=0)[0:-5].values[-1]], layers, 'b')
 
     plt.gca().invert_yaxis()
     plt.xlabel('Vs [m/s]')
@@ -66,10 +70,15 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
     freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))
 
     if not subplots:
-        fig = plt.figure(figsize=(16, 12))
+        fig = plt.figure(figsize=(14, 9))
         ax = fig.add_subplot(1, 1, 1)
         site_obj.elastic_forward_model(elastic=False, plot_on=True)
+        font = {'family': 'normal',
+                'weight': 'bold',
+                'size': 18}
 
+        matplotlib.rc('font', **font)
+        matplotlib.rc('lines', lw=2)
 
 
     if minimum is not None:
@@ -97,22 +106,24 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
                 fwd = site_obj.elastic_forward_model(elastic=elastic)
             plt.loglog(site_obj.Amp['Freq'], fwd, label='mis={}'.format(round(model[-2], 5)))
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
+
+    if minimum is not None:
+        mfit = np.round(orig.total_mis.min(), 2)
+    if thrsh is not None:
+        mfit = np.round(thrsh, 2)
+
+    ax.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
     ax.grid(which='minor', alpha=0.5)
     ax.grid(which='major', alpha=0.7)
-    plt.title('{0}: MC - {1} - iterations - Misfit <= {2} - Sub-layers: {3}'.format(site_obj.site, len(orig) - 1, thrsh,
-                                                                                    orig.n_sub_layers[0].astype(int)))
-    plt.axis('tight')
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(
         lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(
         lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
-    font = {'family': 'normal',
-            'weight': 'bold',
-            'size': 18}
 
-    matplotlib.rc('font', **font)
-    matplotlib.rc('lines', lw=2)
-    ax.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
+    plt.title('{0}: MC - {1} - iterations - Misfit <= {2} - Sub-layers: {3}'.format(site_obj.site, len(orig) - 1, mfit,
+                                                                                    orig.n_sub_layers[0].astype(int)))
+    plt.axis('tight')
+
     plt.legend(loc=2)
 
     if save:
