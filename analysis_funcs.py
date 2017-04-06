@@ -21,7 +21,7 @@ def rand_qc(working_dir, sites=None, random=False):
         sample = [Site(s, working_dir) for s in rand_sites(6)]
     else:
         if sites is not None:
-            sample = sites
+            sample = [Site(s, working_dir) for s in sites]
         else:
             print('Please give list of sites')
             return
@@ -45,9 +45,11 @@ def rand_qc(working_dir, sites=None, random=False):
             ax1.xaxis.set_major_formatter(ticker.FuncFormatter(
                 lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
             ax1.xaxis.label.set_visible(False)
+            plt.ylim([0.1, 100])
         else:
             subplots.append(fig.add_subplot(2, 3, i + 1, sharex=ax1, sharey=ax1))
             site.qc(plot_on=True)
+            plt.ylim([0.1, 100])
 
     for i, subplot in enumerate(subplots):
         subplot.set_xticks([0.1, 1, 5, 10, 25])
@@ -59,6 +61,9 @@ def rand_qc(working_dir, sites=None, random=False):
             lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
         if i in [0, 1]:
             subplot.xaxis.label.set_visible(False)
+            subplot.yaxis.label.set_visible(False)
+        if i in [3, 4]:
+            subplot.yaxis.label.set_visible(False)
     # plt.tight_layout()
     plt.show()
 
