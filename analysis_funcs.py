@@ -8,17 +8,50 @@ import numpy as np
 import glob
 
 
-def rand_qc(working_dir):
+def rand_qc(working_dir, sites=None, random=False):
     """
     Random sample of my site specific S/B ratios plotted against Ben's for quality control.
 
     :param working_dir: string object containing full path to S/B ratio files
+    :param sites
+    :param random
     :return: 10 sites selected at random as a plot (if QC is available for those sites)
     """
-    sample = [Site(s, working_dir) for s in rand_sites(10)]
+    if random:
+        sample = [Site(s, working_dir) for s in rand_sites(10)]
+    else:
+        if sites is not None:
+            sample = sites
+        else:
+            print('Please give list of sites')
+            return
+
+    fig = plt.figure(figsize=(10, 10))
+    subplots = []
     for i, site in enumerate(sample):
-        plt.subplot(2, 5, i + 1)
-        site.qc(plot_on=True)
+        if i == 0:
+            ax1 = fig.add_subplot(2, 3, 1)
+            site.qc(plot_on=True)
+            ax1.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
+            ax1.grid(which='minor', alpha=0.5)
+            ax1.grid(which='major', alpha=0.7)
+            ax1.yaxis.set_major_formatter(ticker.FuncFormatter(
+                lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
+            ax1.xaxis.set_major_formatter(ticker.FuncFormatter(
+                lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
+        else:
+            subplots.append(fig.add_subplot(2, 3, i + 1, sharex=ax1, sharey=ax1))
+            site.qc(plot_on=True)
+
+    for subplot in subplots:
+        subplot.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
+        subplot.grid(which='minor', alpha=0.5)
+        subplot.grid(which='major', alpha=0.7)
+        subplot.yaxis.set_major_formatter(ticker.FuncFormatter(
+            lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
+        subplot.xaxis.set_major_formatter(ticker.FuncFormatter(
+            lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
+
     plt.show()
 
 
