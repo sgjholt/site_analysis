@@ -18,7 +18,7 @@ def rand_qc(working_dir, sites=None, random=False):
     :return: 10 sites selected at random as a plot (if QC is available for those sites)
     """
     if random:
-        sample = [Site(s, working_dir) for s in rand_sites(10)]
+        sample = [Site(s, working_dir) for s in rand_sites(6)]
     else:
         if sites is not None:
             sample = sites
