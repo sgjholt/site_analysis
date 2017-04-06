@@ -32,7 +32,7 @@ def rand_qc(working_dir, sites=None, random=False):
         if i == 0:
             ax1 = fig.add_subplot(2, 3, 1)
             site.qc(plot_on=True)
-            ax1.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
+            ax1.set_xticks([0.1, 1, 5, 10, 25])
             ax1.grid(which='minor', alpha=0.5)
             ax1.grid(which='major', alpha=0.7)
             ax1.yaxis.set_major_formatter(ticker.FuncFormatter(
@@ -44,7 +44,7 @@ def rand_qc(working_dir, sites=None, random=False):
             site.qc(plot_on=True)
 
     for subplot in subplots:
-        subplot.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
+        subplot.set_xticks([0.1, 1, 5, 10, 25])
         subplot.grid(which='minor', alpha=0.5)
         subplot.grid(which='major', alpha=0.7)
         subplot.yaxis.set_major_formatter(ticker.FuncFormatter(
