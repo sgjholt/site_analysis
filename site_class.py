@@ -201,7 +201,7 @@ class Site:
         if code is not None:
             if plot_on:
                 ben = parse_ben_sb('/home/sgjholt/site_ave/', code)
-                plt.loglog(ben[:, 0], ben[:, 1], 'r', label='Ben')
+                plt.loglog(ben[:, 0], ben[:, 1], 'r', label='QC')
                 self.plot_sb(stdv=(1,), cadet_correct=cadet_correct, show=show)
 
             else:

@@ -52,6 +52,7 @@ def rand_qc(working_dir, sites=None, random=False):
         subplot.xaxis.set_major_formatter(ticker.FuncFormatter(
             lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
 
+    plt.tight_layout()
     plt.show()
 
 
