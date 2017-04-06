@@ -8,7 +8,7 @@ import numpy as np
 import glob
 
 
-def rand_qc(working_dir, sites=None, random=False):
+def qc_sb(working_dir, sites=None, random=False):
     """
     Random sample of my site specific S/B ratios plotted against Ben's for quality control.
 
