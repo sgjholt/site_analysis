@@ -203,6 +203,7 @@ class Site:
                 ben = parse_ben_sb('/home/sgjholt/site_ave/', code)
                 plt.loglog(ben[:, 0], ben[:, 1], 'r', label='QC')
                 self.plot_sb(stdv=(1,), cadet_correct=cadet_correct, show=show)
+                plt.legend(loc=2)
 
             else:
                 pass

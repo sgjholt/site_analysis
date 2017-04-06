@@ -27,6 +27,11 @@ def rand_qc(working_dir, sites=None, random=False):
             return
 
     fig = plt.figure(figsize=(10, 10))
+    font = {'weight': 'bold',
+            'size': 18}
+
+    matplotlib.rc('font', **font)
+    matplotlib.rc('lines', lw=2)
     subplots = []
     for i, site in enumerate(sample):
         if i == 0:
@@ -39,11 +44,12 @@ def rand_qc(working_dir, sites=None, random=False):
                 lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
             ax1.xaxis.set_major_formatter(ticker.FuncFormatter(
                 lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
+            ax1.xaxis.label.set_visible(False)
         else:
             subplots.append(fig.add_subplot(2, 3, i + 1, sharex=ax1, sharey=ax1))
             site.qc(plot_on=True)
 
-    for subplot in subplots:
+    for i, subplot in enumerate(subplots):
         subplot.set_xticks([0.1, 1, 5, 10, 25])
         subplot.grid(which='minor', alpha=0.5)
         subplot.grid(which='major', alpha=0.7)
@@ -51,8 +57,9 @@ def rand_qc(working_dir, sites=None, random=False):
             lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
         subplot.xaxis.set_major_formatter(ticker.FuncFormatter(
             lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
-
-    plt.tight_layout()
+        if i in [0, 1]:
+            subplot.xaxis.label.set_visible(False)
+    # plt.tight_layout()
     plt.show()
 
 
@@ -107,8 +114,7 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
         fig = plt.figure(figsize=(14, 9))
         ax = fig.add_subplot(1, 1, 1)
         site_obj.elastic_forward_model(elastic=False, plot_on=True)
-        font = {'family': 'normal',
-                'weight': 'bold',
+        font = {'weight': 'bold',
                 'size': 18}
 
         matplotlib.rc('font', **font)
