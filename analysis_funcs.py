@@ -125,7 +125,6 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
         matplotlib.rc('font', **font)
         matplotlib.rc('lines', lw=2)
 
-
     if minimum is not None:
         subset = orig.query('{0} == {1}'.format(mis, orig.total_mis.min()))
         model = subset.loc[subset.index[0]][0:-4].values
@@ -276,3 +275,31 @@ def compare_fill(site_obj, fill_pct=()):
     site_obj.elastic_forward_model(elastic=False, plot_on=True)
 
 
+# Only works to plot strata data files - oc2within v oc2oc
+
+def plot_comp_strata(site_obj, path):
+    font = {'weight': 'bold',
+            'size': 18}
+
+    matplotlib.rc('font', **font)
+    matplotlib.rc('lines', lw=2)
+    data = np.loadtxt(path, delimiter=',')
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(111)
+    site_obj.plot_sb(stdv=(1,))
+    plt.loglog(data[:, 0], data[:, 1], 'b', label='OC-WN')
+    plt.loglog(data[:, 0], data[:, 2], 'r', label='OC-OC')
+    plt.hlines(1, data[:, 0][0], data[:, 0][-1], colors='k', linestyles='dashed')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('SHTF')
+    plt.title(path.split('/')[-1].split('_')[0]+': 1D-SHTF')
+    ax.set_xticks([0.1, 1, 10, 25])
+    ax.grid(which='minor', alpha=0.5)
+    ax.grid(which='major', alpha=0.7)
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(
+        lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(
+        lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
+    plt.ylim([0.5, 15])
+    plt.xlim([0.1, 25])
+    plt.legend(loc=2)
