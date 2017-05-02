@@ -24,7 +24,7 @@ class Sim1D(sc.Site, sm.Site1D):
         :param working_directory:
         :param run_dir:
         :param litho:
-        :param vel_file_dir:
+        :param vel_file_dir:q
         """
         sc.Site.__init__(self, name, working_directory, vel_file_dir)
         sm.Site1D.__init__(self)
@@ -59,7 +59,7 @@ class Sim1D(sc.Site, sm.Site1D):
         :param elastic:
         :param plot_on:
         :param show:
-        :param freqs:
+        :param motion:
         :return:
         """
         if not self.has_vel_profile:
@@ -91,7 +91,7 @@ class Sim1D(sc.Site, sm.Site1D):
         else:
             return np.abs(self.Amp['Shtf'])
 
-    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, x_cor_range=(0, 25), elastic=True, plot_on=False, show=False, cadet_correct=False, fill_troughs_pct=None):
+    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, x_cor_range=(0, 25), elastic=True, motion='outcrop', plot_on=False, show=False, cadet_correct=False, fill_troughs_pct=None):
         """
 
         :param weights: weights to assign to components of misfit e.g. weights[0] = amplitude misfit weight and
@@ -113,7 +113,7 @@ class Sim1D(sc.Site, sm.Site1D):
         std = sb_table.loc['std'].values  # std of ln values
         _freqs = sb_table.columns.values.astype(float)  # str by default
         freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
-        predicted = self.elastic_forward_model(i_ang, elastic)[::, 0]  # calc fwd model
+        predicted = self.elastic_forward_model(i_ang, elastic, motion=motion)[::, 0]  # calc fwd model
 
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
