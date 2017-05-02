@@ -357,7 +357,7 @@ class Sim1D(sc.Site, sm.Site1D):
                         fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                         i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
         print(
-            "Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]], total_mis,
+            "Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]], amp_mis,
                                                                      0))
         # store result in pandas data frame
         results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis, 0]
