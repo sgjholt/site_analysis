@@ -52,7 +52,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if self.litho:  # add final half layer
             self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
 
-    def elastic_forward_model(self, i_ang=0, elastic=True, plot_on=False, show=False):
+    def elastic_forward_model(self, i_ang=0, elastic=True, plot_on=False, show=False, motion='outcrop'):
         """
 
         :param i_ang:
@@ -69,7 +69,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if len(self.Amp['Freq']) == 0:
             self.Amp['Freq'] = self.sb_ratio().columns.values.astype(float).tolist()
 
-        self.ComputeSHTF(i_ang, elastic)
+        self.ComputeSHTF(i_ang, elastic, motion)
 
         if plot_on:
             if self.litho:
