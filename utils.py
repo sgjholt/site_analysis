@@ -224,9 +224,9 @@ def silent_remove(filename):
 def df_cols(dimensions, sub_layers=False):
     cols = ['v'+str(num+1) for num in range(dimensions-1)]
     if sub_layers:
-        [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'total_mis', 'n_sub_layers')]
+        [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'n_sub_layers')]
     else:
-        [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'total_mis')]
+        [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis')]
     return cols
 
 

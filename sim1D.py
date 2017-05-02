@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
-from utils import binning, pick_model, uniform_model_space, df_cols, calc_density_profile, exp_cdf, fill_troughs, \
-    uniform_sub_model_space
+from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, uniform_sub_model_space
+
 # import itertools
 
 
@@ -124,11 +124,11 @@ class Sim1D(sc.Site, sm.Site1D):
         log_residuals = (np.log(predicted) - observed) #/std  # weighted by stdv
 
         # if log_residuals.min() < 0:  # if lowest is negative need to apply linear shift to 0
-        #    log_residuals -= log_residuals.min()
-        if np.abs(log_residuals).max() < 1:
-            log_residuals /= 1
-        else:
-            log_residuals /= np.abs(log_residuals).max()  # normalise between -1 to 1
+        #     log_residuals -= log_residuals.min()
+        # if np.abs(log_residuals).max() < 1:
+        #     log_residuals /= 1
+        # else:
+        #     log_residuals /= np.abs(log_residuals).max()  # normalise between -1 to 1
 
         log_rms_misfit = (np.sum(log_residuals ** 2) / len(log_residuals)) ** 0.5  # amplitude GOF between 0-1
         # re-sample the predicted and observed signals to the range specified for x_correlation
@@ -140,7 +140,8 @@ class Sim1D(sc.Site, sm.Site1D):
         max_xcor = x_cor.max()  # max value
         x_cor = (x_cor.argmax() - (len(x_cor)-1)/2)*dt  # len -1 because the signal index begins counting at 0
         # Calculate total misfit in both amplitude and frequency (fitting in both dimensions)
-        total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor), lam=lam)*weights[1]
+        # ***NO LONGER CALCULATED***
+        # total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor), lam=lam)*weights[1]
 
         if plot_on:
             plt.figure(figsize=(10, 10))
@@ -158,12 +159,11 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('SB Ratio / SHTF')
             plt.show()
-            #self.elastic_forward_model(elastic=elastic, plot_on=True, freqs=freqs)
-            #self.plot_sb(stdv=(1,))
-
+            # self.elastic_forward_model(elastic=elastic, plot_on=True, freqs=freqs)
+            # self.plot_sb(stdv=(1,))
 
         else:
-            return log_residuals, log_rms_misfit, x_cor, total_misfit
+            return log_residuals, log_rms_misfit, x_cor,  # total_misfit
         if show:
             plt.show()
 
