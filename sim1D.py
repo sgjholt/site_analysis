@@ -349,7 +349,7 @@ class Sim1D(sc.Site, sm.Site1D):
         # SETUP END #
 
         # run original model
-        _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+        _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                       fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                                                       i_ang=i_ang, x_cor_range=x_cor_range)
         if debug:
@@ -365,7 +365,7 @@ class Sim1D(sc.Site, sm.Site1D):
         for i, model in enumerate(realisations):
             self.modify_site_model(model)  # change the model in Valerio's SiteModel class
             # calculate misfit
-            _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+            _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                           fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                                                           i_ang=i_ang, x_cor_range=x_cor_range)
             if debug:
@@ -373,8 +373,8 @@ class Sim1D(sc.Site, sm.Site1D):
                             fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                             i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
             # store result in data frame
-            results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis, 0]
-            print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, 0))
+            results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, 0]
+            print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, amp_mis, 0))
         if save:
             results.to_csv(self.simulation_path + 'n_sub_' + str(0) + '.csv')
         else:
@@ -411,7 +411,7 @@ class Sim1D(sc.Site, sm.Site1D):
             results.index.name = 'trial'
             # SETUP END #
             # run original model
-            _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+            _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                           fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                                                           i_ang=i_ang, x_cor_range=x_cor_range)
             if debug:
@@ -420,15 +420,15 @@ class Sim1D(sc.Site, sm.Site1D):
                             i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
 
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, orig_sub.tolist() + [self.Mod['Qs'][0]],
-                                                                           total_mis, n_layers))
+                                                                           amp_mis, n_layers))
             # store result in pandas data frame
-            results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis, n_layers]
+            results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, n_layers]
             # loop over the model realisations picked at random and calculate misfit
             for i, model in enumerate(realisations):
                 # print(model)
                 self.modify_site_model(model, sub_layers=True)  # change the model in Valerio's SiteModel class
                 # calculate misfit
-                _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                               fill_troughs_pct=fill_troughs_pct, weights=weights,
                                                               lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
                 if debug:
@@ -436,8 +436,8 @@ class Sim1D(sc.Site, sm.Site1D):
                                 fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
                                 i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
                 # store result in data frame
-                results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis, n_layers]
-                print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, total_mis, n_layers))
+                results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, n_layers]
+                print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, amp_mis, n_layers))
 
             if save:  # save the file as csv
                 # results.to_csv(self.simulation_path+'.csv')
