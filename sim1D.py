@@ -91,7 +91,7 @@ class Sim1D(sc.Site, sm.Site1D):
         else:
             return np.abs(self.Amp['Shtf'])
 
-    def misfit(self, weights=(0.4, 0.6), lam=1, i_ang=0, x_cor_range=(0, 25), elastic=True, motion='outcrop', plot_on=False, show=False, cadet_correct=False, fill_troughs_pct=None):
+    def misfit(self, i_ang=0, x_cor_range=(0, 25), elastic=True, motion='outcrop', plot_on=False, show=False, cadet_correct=False, fill_troughs_pct=None):
         """
 
         :param weights: weights to assign to components of misfit e.g. weights[0] = amplitude misfit weight and
@@ -291,7 +291,7 @@ class Sim1D(sc.Site, sm.Site1D):
             # print(self.Mod)
             return None
 
-    def uniform_sub_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
+    def uniform_sub_random_search(self, pct_variation, steps, iterations, name, i_ang=0,
                                   x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
                                   fill_troughs_pct=None, save=False, gaussian_sampling=True, debug=False):
         """
@@ -350,11 +350,11 @@ class Sim1D(sc.Site, sm.Site1D):
 
         # run original model
         _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                      fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                                                      fill_troughs_pct=fill_troughs_pct,
                                                       i_ang=i_ang, x_cor_range=x_cor_range)
         if debug:
             self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                        fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                        fill_troughs_pct=fill_troughs_pct,
                         i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
         print(
             "Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]], amp_mis,
@@ -366,11 +366,11 @@ class Sim1D(sc.Site, sm.Site1D):
             self.modify_site_model(model)  # change the model in Valerio's SiteModel class
             # calculate misfit
             _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                          fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                                                          fill_troughs_pct=fill_troughs_pct,
                                                           i_ang=i_ang, x_cor_range=x_cor_range)
             if debug:
                 self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                            fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                            fill_troughs_pct=fill_troughs_pct,
                             i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
             # store result in data frame
             results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, 0]
@@ -412,11 +412,11 @@ class Sim1D(sc.Site, sm.Site1D):
             # SETUP END #
             # run original model
             _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                          fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                                                          fill_troughs_pct=fill_troughs_pct,
                                                           i_ang=i_ang, x_cor_range=x_cor_range)
             if debug:
                 self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                            fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
+                            fill_troughs_pct=fill_troughs_pct,
                             i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
 
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, orig_sub.tolist() + [self.Mod['Qs'][0]],
@@ -429,12 +429,11 @@ class Sim1D(sc.Site, sm.Site1D):
                 self.modify_site_model(model, sub_layers=True)  # change the model in Valerio's SiteModel class
                 # calculate misfit
                 _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                              fill_troughs_pct=fill_troughs_pct, weights=weights,
-                                                              lam=lam, i_ang=i_ang, x_cor_range=x_cor_range)
+                                                   fill_troughs_pct=fill_troughs_pct, i_ang=i_ang,
+                                                   x_cor_range=x_cor_range)
                 if debug:
                     self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
-                                i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
+                                fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
                 # store result in data frame
                 results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, n_layers]
                 print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, amp_mis, n_layers))

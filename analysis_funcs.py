@@ -1,6 +1,6 @@
 from site_class import Site
 # from find_peaks import detect_peaks
-from utils import rand_sites, fill_troughs
+from utils import rand_sites, fill_troughs, exp_cdf
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -304,3 +304,18 @@ def plot_comp_strata(site_obj, path):
     plt.ylim([0.5, 15])
     plt.xlim([0.1, 25])
     plt.legend(loc=2)
+
+
+def plot_misfit_space(table):
+
+    amp_normed = table.amp_mis.values/np.sqrt(np.trapz(table.amp_mis.values**2))
+    xcor_normed = exp_cdf(np.abs(table.freq_mis.values), lam=1)
+
+    plt.scatter(amp_normed, xcor_normed)
+    plt.hlines(1, amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='red')
+    plt.xlabel('$RMS$ $Normalised$')
+    plt.ylabel('$Frequency$ $Lag$ $Normalised$')
+    plt.title('Misfit Space:')
+    plt.ylim([-0.1, 1.05])
+    #plt.xlim([0, amp_normed.max()+0.1])
+    plt.show()
