@@ -91,20 +91,21 @@ class Sim1D(sc.Site, sm.Site1D):
         else:
             return np.abs(self.Amp['Shtf'])
 
-    def misfit(self, i_ang=0, x_cor_range=(0, 25), elastic=True, motion='outcrop', plot_on=False, show=False, cadet_correct=False, fill_troughs_pct=None):
+    def misfit(self, i_ang=0, x_cor_range=(0, 25), elastic=True, motion='outcrop', plot_on=False, show=False,
+               cadet_correct=False, fill_troughs_pct=None):
         """
 
-        :param weights: weights to assign to components of misfit e.g. weights[0] = amplitude misfit weight and
-                            weights[1] = frequency misfit weight. - tuple (int/float, int/float)
-        :param lam: shape of exponential CDF: higher number = higher penalty for larger frequency misfit - int/float
+        
         :param i_ang: incident angle (radians) of up-going wave from bedrock for forward model - int/float
         :param x_cor_range: range of values used for x_correlation - take values past unity part of response
                                (ratio ~= 1) to avoid -ve bias in correlation. - tuple (int/float, int/float)
         :param elastic: perform elastic or anelastic simulation - bool - True/False
+        :param motion: Choose to model 'within' (A+B) or 'outcrop' (2*A) motion at depth - str
         :param plot_on: plot waveform in matplotlib (background) - bool - True/False
         :param show: show matplotlib plot - bool- True/False
         :param cadet_correct: Apply the correction to SB ratio detailed in Cadet et al. (2012) - bool - True/False
-        :return: None: if plot_on == True: else: tuple (log_resids, log_misfit, x_cor, total_misfit):
+        :param fill_troughs_pct: Fill the troughs of theoretical waveform to a percentage of peak amplitudes
+        :return: None: if plot_on == True: else: tuple (log_resids, log_misfit, x_cor):
         """
         dt = 0.01  # time delta - ***TEMPORARY - NEEDS TO BE MORE FLEXIBLE ***
         sb_table = self.sb_ratio(cadet_correct=cadet_correct)  # get the pandas table for sb site sb ratio
@@ -147,7 +148,7 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.figure(figsize=(10, 10))
             plt.subplot(211)
             # bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)  # bin only when plotting
-            plt.title('{0} : Log Residuals - Misfit: {1}.'.format(self.site, round(total_misfit, 5)))
+            plt.title('{0} : Log Residuals - Misfit: {1}.'.format(self.site, np.round(log_rms_misfit, 5)))
             plt.plot(_freqs, log_residuals, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
@@ -166,66 +167,6 @@ class Sim1D(sc.Site, sm.Site1D):
             return log_residuals, log_rms_misfit, x_cor,  # total_misfit
         if show:
             plt.show()
-
-    def uniform_random_search(self, pct_variation, steps, iterations, name, weights=(0.4, 0.6), lam=1, i_ang=0,
-                              x_cor_range=(0, 25), const_q=None, elastic=True, cadet_correct=False, fill_troughs_pct=None, save=False):
-        """
-
-
-        :param pct_variation: percentage about the original vs model value to vary
-        :param steps: amount of steps - more steps = less space between Vs values
-        :param iterations: number of model space realisations - chosen at random
-        :param name: the name of the simulation (file to be saved)I
-        :param weights: weights for misfit function - see misfit method
-        :param lam: lambda for exponential CDF - see misfit method
-        :param i_ang: incident angle of upgoing wave - rads
-        :param x_cor_range: range for x_correlation - see misfit method
-        :param const_q: if not None provide value for constant damping
-        :param elastic: elastic or anelastic simulation
-        :param cadet_correct: apply cadet et al. 2012 correction to observed SB ratio
-        :param save: save the result as csv file
-        :return:
-        """
-
-        self.simulation_path = self.run_dir + name
-
-        self.model_space = uniform_model_space(self.Mod['Vs'], pct_variation, steps, const_q=const_q)  # build the model space
-
-        dimensions, indexes = self.model_space.shape  # log the dimensions of the model space
-
-        random_choices = np.random.randint(0, indexes-1, (iterations, dimensions))  # pick indices at random
-                                                                                    # (from uniform distribution) and
-                                                                                    # build realisations from the model space
-        realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
-        for i, row in enumerate(random_choices):
-            realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
-
-        results = pd.DataFrame(columns=df_cols(dimensions=dimensions))  # build pd DataFrame to store results
-        results.index.name = 'trial'
-
-        # run original model
-        _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                      fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
-                                                      i_ang=i_ang, x_cor_range=x_cor_range)
-        print("Trial:{0}-Model:{1}-Misfit:{2}".format(0, self.Mod['Vs']+[self.Mod['Qs'][0]], total_mis))
-        # store result in pandas data frame
-        results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, total_mis]
-        # loop over the model realisations picked at random and calculate misfit
-        for i, model in enumerate(realisations):
-            self.modify_site_model(model)  # change the model in Valerio's SiteModel class
-
-            # calculate misfit
-            _, amp_mis, freq_mis, total_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                          fill_troughs_pct=fill_troughs_pct, weights=weights, lam=lam,
-                                                          i_ang=i_ang, x_cor_range=x_cor_range)
-            # store result in data frame
-            results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, total_mis]
-            print("Trial:{0}-Model:{1}-Misfit:{2}".format(i+1, model, total_mis))
-
-        if save:  # save the file as csv
-            results.to_csv(self.simulation_path+'.csv')
-        if not save:
-            return results  # self explanatory
 
     def modify_site_model(self, model, sub_layers=False):
         """

@@ -304,16 +304,30 @@ def plot_comp_strata(site_obj, path):
     plt.legend(loc=2)
 
 
-def plot_misfit_space(table):
+def plot_misfit_space(table, ):
 
     amp_normed = table.amp_mis.values/np.sqrt(np.trapz(table.amp_mis.values**2))
     xcor_normed = exp_cdf(np.abs(table.freq_mis.values), lam=1)
 
-    plt.scatter(amp_normed, xcor_normed)
-    plt.hlines(1, amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='red')
+    def onpick(event):
+        models = []
+        index = event.ind
+        for ind in index:
+            print('Trial: {0}-RMS:{1}-F_Lag:{2}'.format(ind, np.take(amp_normed, ind), np.take(xcor_normed, ind)))
+            print('Model: {0}'.format(table.loc[int(ind)].values[:-3]))
+            print('\n')
+
+    fig, ax = plt.subplots()
+    ax.scatter(amp_normed, xcor_normed, picker=True, label='Random Trials')
+    ax.hlines(1, amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='red', label='Auto-Rejected Models')
+    ax.hlines(xcor_normed[0], amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='blue')
+    ax.vlines(amp_normed[0], xcor_normed.min(), xcor_normed.max(), linestyles='dashed', colors='blue')
+    ax.scatter(amp_normed[0], xcor_normed[0], s=40, c='red', label='Initial Model')
     plt.xlabel('$RMS$ $Normalised$')
     plt.ylabel('$Frequency$ $Lag$ $Normalised$')
     plt.title('Misfit Space:')
     plt.ylim([-0.1, 1.05])
-    #plt.xlim([0, amp_normed.max()+0.1])
+    fig.canvas.mpl_connect('pick_event', onpick)
+    plt.legend(loc=1)
+    # plt.xlim([0, amp_normed.max()+0.1])
     plt.show()
