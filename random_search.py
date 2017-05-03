@@ -18,9 +18,10 @@ __author__ = 'James Holt'
 def main():
     site = sys.argv[1]
     iterations = int(sys.argv[2])
+    motion = str(sys.argv[3])
     name = site+'_rnd_ufm_'+'_'+str(iterations)+'_run_0'
     wd = '/data/share/Japan/SiteInfo/S_B/Repi_lessthan_300_depth_lessthan_25/'
-    rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl/'.format(site)
+    rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl_{1}/'.format(site, motion)
 
     if not os.path.isdir(rd):  # if not a directory, make it
         print('creating dir: {0}'.format(rd))
@@ -34,7 +35,7 @@ def main():
         print('name changed to: {0}'.format(name))
 
     sub_uniform_search(site, wd, rd, 250.0, 10, iterations, name, 0, (0.5, 25), 100, False, False, None,
-                       (1, 2, 3), 'outcrop')
+                       (1, 2, 3), motion)
 
 
 def sub_uniform_search(*args):

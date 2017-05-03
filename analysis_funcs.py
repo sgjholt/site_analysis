@@ -181,8 +181,6 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
 
 # def plot
 
-
-
 def randomise_q(site_obj):
     """
 
