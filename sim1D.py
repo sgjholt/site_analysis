@@ -293,7 +293,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, i_ang=0,
                                   x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
-                                  fill_troughs_pct=None, save=False, gaussian_sampling=True, debug=False):
+                                  fill_troughs_pct=None, save=False, gaussian_sampling=True, debug=False, motion='outcrop'):
         """
         UNFINISHED
 
@@ -351,11 +351,11 @@ class Sim1D(sc.Site, sm.Site1D):
         # run original model
         _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                       fill_troughs_pct=fill_troughs_pct,
-                                                      i_ang=i_ang, x_cor_range=x_cor_range)
+                                                      i_ang=i_ang, x_cor_range=x_cor_range, motion=motion)
         if debug:
             self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                         fill_troughs_pct=fill_troughs_pct,
-                        i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
+                        i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion)
         print(
             "Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]], amp_mis,
                                                                      0))
@@ -367,11 +367,11 @@ class Sim1D(sc.Site, sm.Site1D):
             # calculate misfit
             _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                           fill_troughs_pct=fill_troughs_pct,
-                                                          i_ang=i_ang, x_cor_range=x_cor_range)
+                                                          i_ang=i_ang, x_cor_range=x_cor_range, motion=motion)
             if debug:
                 self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                             fill_troughs_pct=fill_troughs_pct,
-                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
+                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion)
             # store result in data frame
             results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, 0]
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, amp_mis, 0))
@@ -388,7 +388,7 @@ class Sim1D(sc.Site, sm.Site1D):
                 self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
             # build the model space
             model_space, orig_sub = uniform_sub_model_space(self.Mod['Vs'], variation_pct=pct_variation, steps=steps,
-                                                            n_sub_layers=n_layers, const_q=const_q)
+                                                            n_sub_layers=n_layers, const_q=const_q, motion=motion)
 
             dimensions, indexes = model_space.shape  # log the dimensions of the model space
 
@@ -413,11 +413,11 @@ class Sim1D(sc.Site, sm.Site1D):
             # run original model
             _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                           fill_troughs_pct=fill_troughs_pct,
-                                                          i_ang=i_ang, x_cor_range=x_cor_range)
+                                                          i_ang=i_ang, x_cor_range=x_cor_range, motion=motion)
             if debug:
                 self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                             fill_troughs_pct=fill_troughs_pct,
-                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
+                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion)
 
             print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, orig_sub.tolist() + [self.Mod['Qs'][0]],
                                                                            amp_mis, n_layers))
@@ -430,10 +430,10 @@ class Sim1D(sc.Site, sm.Site1D):
                 # calculate misfit
                 _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                    fill_troughs_pct=fill_troughs_pct, i_ang=i_ang,
-                                                   x_cor_range=x_cor_range)
+                                                   x_cor_range=x_cor_range, motion=motion)
                 if debug:
                     self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True)
+                                fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion)
                 # store result in data frame
                 results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, n_layers]
                 print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, amp_mis, n_layers))
