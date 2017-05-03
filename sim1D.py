@@ -388,7 +388,7 @@ class Sim1D(sc.Site, sm.Site1D):
                 self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
             # build the model space
             model_space, orig_sub = uniform_sub_model_space(self.Mod['Vs'], variation_pct=pct_variation, steps=steps,
-                                                            n_sub_layers=n_layers, const_q=const_q, motion=motion)
+                                                            n_sub_layers=n_layers, const_q=const_q)
 
             dimensions, indexes = model_space.shape  # log the dimensions of the model space
 
