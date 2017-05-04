@@ -318,6 +318,11 @@ def plot_misfit_space(table, ):
             print('\n')
 
     fig, ax = plt.subplots()
+    font = {'weight': 'bold',
+            'size': 18}
+
+    matplotlib.rc('font', **font)
+    matplotlib.rc('lines', lw=2)
     ax.scatter(amp_normed, xcor_normed, picker=True, label='Random Trials')
     ax.hlines(1, amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='red', label='Auto-Rejected Models')
     ax.hlines(xcor_normed[0], amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='blue')
