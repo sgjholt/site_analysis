@@ -109,11 +109,15 @@ def vel_model_range(orig, subset, thresh, site_obj, pct_v, save=False, user='sgj
         plt.show()
 
 
-def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None, elastic=False, cadet_correct=False,
+def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False,
                        fill_troughs_pct=None, sub_layers=True, save=False, dpi=None, user='sgjholt', subplots=False):
+    orig.freq_mis = exp_cdf(orig.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
+    orig.amp_mis = (orig.amp_mis - orig.amp_mis.min()) / (
+    orig.amp_mis.max() - orig.amp_mis.min())  # apply normalisation (rms)
+
+    site_obj.reset_site_model()
 
     _freqs = site_obj.sb_ratio().columns.values.astype(float)  # str by default
-    freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))
 
     if not subplots:
         fig = plt.figure(figsize=(14, 9))
@@ -126,35 +130,42 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
         matplotlib.rc('lines', lw=2)
 
     if minimum is not None:
-        subset = orig.query('{0} == {1}'.format(mis, orig.total_mis.min()))
-        model = subset.loc[subset.index[0]][0:-4].values
+        # find all models better(or equal to) original model - make sure absolute value of f_lag considered
+        subset = orig.apply(np.abs)
+        subset = subset[subset.freq_mis <= subset.freq_mis.min()]
+        subset = subset[subset.amp_mis <= subset.amp_mis.min()]
+
+        model = subset.loc[subset.index[0]][0:-3].values
         site_obj.modify_site_model(model, sub_layers=sub_layers)
         if fill_troughs_pct is not None:
-            site_obj.GenFreqAx(freqs[0], freqs[1], freqs[2])
-            plt.plot(freqs, fill_troughs(site_obj.elastic_forward_model(elastic=elastic)[::, 0],
-                                         pct=fill_troughs_pct))
+            plt.plot(_freqs, fill_troughs(site_obj.elastic_forward_model(elastic=elastic)[::, 0],
+                                          pct=fill_troughs_pct))
         else:
-            site_obj.elastic_forward_model(elastic=elastic, plot_on=True)
+            plt.plot(site_obj.Amp['Freq'], site_obj.elastic_forward_model(elastic=elastic)[::, 0],
+                     label='SHTF - Optimised')
 
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
 
     if thrsh is not None:
-        subset = orig.query('{0} <= {1}'.format(mis, thrsh))
+        subset = orig.apply(np.abs)
+        subset = subset[subset.freq_mis <= thrsh[1]]
+        subset = subset[subset.amp_mis <= thrsh[0]]
         for row in subset.iterrows():
             model = np.array([num[1] for num in row[1].iteritems()])
-            site_obj.modify_site_model(model[0:-4], sub_layers=sub_layers)
+            site_obj.modify_site_model(model[0:-3], sub_layers=sub_layers)
             if fill_troughs_pct is not None:
                 fwd = fill_troughs(site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)[::, 0],
                                    pct=fill_troughs_pct)
             else:
                 fwd = site_obj.elastic_forward_model(elastic=elastic)
-            plt.loglog(site_obj.Amp['Freq'], fwd, label='mis={}'.format(round(model[-2], 5)))
+            plt.plot(site_obj.Amp['Freq'], fwd, label='amp_mis={0}, freq_mis={1}'.format(np.round(model[-3], 5),
+                                                                                         np.round(model[-2], 5)))
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
 
     if minimum is not None:
-        mfit = np.round(orig.total_mis.min(), 2)
+        mfit = np.round(orig.amp_mis.min(), 2), np.round(orig.freq_mis.min(), 2)
     if thrsh is not None:
-        mfit = np.round(thrsh, 2)
+        mfit = np.round(thrsh[0], 2), np.round(thrsh[1], 2)
 
     ax.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
     ax.grid(which='minor', alpha=0.5)
@@ -171,8 +182,9 @@ def best_fitting_model(site_obj, orig, mis='total_mis',minimum=None, thrsh=None,
     plt.legend(loc=2)
 
     if save:
-        plt.savefig('/home/{3}/plots/synthetic_tests/{0}-MC-{1}-iterations-Misfit-loe{2}-Sub-layers-{4}.pdf'.format(
-            site_obj.site, len(orig) - 1, thrsh, user, orig.n_sub_layers[0].astype(int)), dpi=dpi, facecolor='w',
+        plt.savefig('/home/{4}/plots/synthetic_tests/{0}-MC-{1}-iterations-Misfit-loe{2}-{3}-Sub-layers-{5}.pdf'.format(
+            site_obj.site, len(orig) - 1, thrsh[0], thrsh[1], user, orig.n_sub_layers[0].astype(int)), dpi=dpi,
+            facecolor='w',
             edgecolor='w', orientation='portrait', format='pdf', transparent=False, bbox_inches=None,
             pad_inches=0.1, frameon=None)
     else:
