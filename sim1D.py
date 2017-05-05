@@ -52,7 +52,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if self.litho:  # add final half layer
             self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
 
-    def elastic_forward_model(self, i_ang=0, elastic=True, plot_on=False, show=False, motion='outcrop'):
+    def linear_forward_model_1d(self, i_ang=0, elastic=True, plot_on=False, show=False, motion='outcrop'):
         """
 
         :param i_ang:
