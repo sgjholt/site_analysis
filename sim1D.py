@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
+from obspy.signal.konnoohmachismoothing import konno_ohmachi_smoothing
 from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, uniform_sub_model_space
 
 # import itertools
@@ -52,14 +53,16 @@ class Sim1D(sc.Site, sm.Site1D):
         if self.litho:  # add final half layer
             self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
 
-    def linear_forward_model_1d(self, i_ang=0, elastic=True, plot_on=False, show=False, motion='outcrop'):
+    def linear_forward_model_1d(self, i_ang=0, elastic=True, konno_ohmachi=None, motion='outcrop', plot_on=False,
+                                show=False):
         """
 
         :param i_ang:
         :param elastic:
+        :param:konno_ohmachi:
+        :param motion:
         :param plot_on:
         :param show:
-        :param motion:
         :return:
         """
         if not self.has_vel_profile:
@@ -70,6 +73,11 @@ class Sim1D(sc.Site, sm.Site1D):
             self.Amp['Freq'] = self.sb_ratio().columns.values.astype(float).tolist()
 
         self.ComputeSHTF(i_ang, elastic, motion)
+
+        if konno_ohmachi is not None:
+            # if not none then value should be int containing bandwidth parameter b
+            self.Amp['Shtf'] = konno_ohmachi_smoothing(self.Amp['Shtf'], np.array(self.Amp['Freq']),
+                                                       bandwidth=konno_ohmachi)
 
         if plot_on:
             if self.litho:
