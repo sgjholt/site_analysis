@@ -171,7 +171,8 @@ class Sim1D(sc.Site, sm.Site1D):
 
             plt.subplot(212)
             plt.plot(_freqs, observed, 'k')
-            plt.plot(_freqs, np.log(predicted), 'r')
+            plt.plot(_freqs, np.log(predicted), 'b')
+            plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('SB Ratio / SHTF')
             plt.grid(which='both')
