@@ -1,11 +1,10 @@
-from site_class import Site
-# from find_peaks import detect_peaks
-from utils import rand_sites, fill_troughs, exp_cdf
+import glob
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
-import glob
+from site_class import Site
+from utils import rand_sites, fill_troughs, exp_cdf
 
 
 def qc_sb(working_dir, sites=None, random=False):

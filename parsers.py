@@ -1,4 +1,4 @@
-# Parsers used for the site_
+# Parsers used for the site_class object
 
 import numpy as np
 import pandas as pd

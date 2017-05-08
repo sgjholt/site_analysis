@@ -10,7 +10,6 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import os
 from parsers import parse_ben_sb, read_kik_vel_file, parse_metadata, parse_litho
 from utils import calc_density_profile, dest_freq, downgoing_transform_func
 

@@ -1,11 +1,12 @@
+import random
+import contextlib
+import os
 import numpy as np
 import pandas as pd
 import scipy.signal as sg
 from find_peaks import detect_peaks
 from parsers import readKiknet
-import random
-import contextlib
-import os
+
 
 
 def rand_sites(sample_size):
@@ -222,7 +223,13 @@ def silent_remove(filename):
 
 
 def df_cols(dimensions, sub_layers=False):
-    cols = ['v'+str(num+1) for num in range(dimensions-1)]
+    """
+    
+    :param dimensions: 
+    :param sub_layers: 
+    :return: 
+    """
+    cols = ['v{i:02d}'.format(i=num + 1) for num in range(dimensions - 1)]
     if sub_layers:
         [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'n_sub_layers')]
     else:

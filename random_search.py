@@ -6,10 +6,10 @@
 #
 #
 # ---------------------------------modules--------------------------------------#
-import sim1D as sd
 import time
 import os
 import sys
+import sim1D as sd
 
 __author__ = 'James Holt'
 # ---------------------------------modules--------------------------------------#
@@ -22,7 +22,7 @@ def main():
     konno_ohmachi = 20
     name = site + '_rnd_ufm_' + '_' + str(iterations) + '_run_0_'
     wd = '/data/share/Japan/SiteInfo/S_B/Repi_lessthan_300_depth_lessthan_25/'
-    rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl_{1}/'.format(site, motion)
+    rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl_{1}_smooth-{2}/'.format(site, motion, konno_ohmachi)
 
     if not os.path.isdir(rd):  # if not a directory, make it
         print('creating dir: {0}'.format(rd))
