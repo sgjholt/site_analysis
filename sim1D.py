@@ -101,7 +101,7 @@ class Sim1D(sc.Site, sm.Site1D):
             return np.abs(self.Amp['Shtf'])
 
     def misfit(self, i_ang=0, x_cor_range=(0, 25), elastic=True, motion='outcrop', plot_on=False, show=False,
-               cadet_correct=False, fill_troughs_pct=None):
+               cadet_correct=False, fill_troughs_pct=None, konno_ohmachi=None):
         """
 
         
@@ -114,16 +114,18 @@ class Sim1D(sc.Site, sm.Site1D):
         :param show: show matplotlib plot - bool- True/False
         :param cadet_correct: Apply the correction to SB ratio detailed in Cadet et al. (2012) - bool - True/False
         :param fill_troughs_pct: Fill the troughs of theoretical waveform to a percentage of peak amplitudes
+        :param konno_ohmachi
         :return: None: if plot_on == True: else: tuple (log_resids, log_misfit, x_cor):
         """
         dt = 0.01  # time delta - ***TEMPORARY - NEEDS TO BE MORE FLEXIBLE ***
         sb_table = self.sb_ratio(cadet_correct=cadet_correct)  # get the pandas table for sb site sb ratio
 
         observed = sb_table.loc['mean'].values   # observed (mean of ln values) (normally distributed in logspace)
-        std = sb_table.loc['std'].values  # std of ln values
+        # std = sb_table.loc['std'].values  # std of ln values
         _freqs = sb_table.columns.values.astype(float)  # str by default
-        freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
-        predicted = self.linear_forward_model_1d(i_ang, elastic, motion=motion)[::, 0]  # calc fwd model
+        # freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
+        predicted = self.linear_forward_model_1d(i_ang, elastic, motion=motion, konno_ohmachi=konno_ohmachi)[::,
+                    0]  # calc fwd model
 
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
@@ -131,7 +133,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if fill_troughs_pct is not None:
             predicted = fill_troughs(predicted, fill_troughs_pct)
 
-        log_residuals = (np.log(predicted) - observed) #/std  # weighted by stdv
+        log_residuals = (np.log(predicted) - observed)  # /std  # weighted by stdv
 
         # if log_residuals.min() < 0:  # if lowest is negative need to apply linear shift to 0
         #     log_residuals -= log_residuals.min()
@@ -243,7 +245,8 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, i_ang=0,
                                   x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
-                                  fill_troughs_pct=None, save=False, gaussian_sampling=True, debug=False, motion='outcrop'):
+                                  fill_troughs_pct=None, save=False, gaussian_sampling=True, debug=False,
+                                  motion='outcrop', konno_ohmachi=None):
         """
         UNFINISHED
 
@@ -256,11 +259,15 @@ class Sim1D(sc.Site, sm.Site1D):
         :param i_ang: incident angle of upgoing wave - rads
         :param x_cor_range: range for x_correlation - see misfit method
         :param const_q: if not None provide value for constant damping
+        :param n_sub_layers
         :param elastic: elastic or anelastic simulation
         :param cadet_correct: apply Cadet et al. 2012 correction to observed SB ratio
         :param fill_troughs_pct:
         :param save: save the result as csv file
-        :param: debug: bool: If true perform debugging actions. 
+        :param gaussian_sampling
+        :param debug: bool: If true perform debugging actions. 
+        :param motion:
+        :param konno_ohmachi:
         :return:
         """
         # -------------------------------------run 0-----------------------------------------------------#
