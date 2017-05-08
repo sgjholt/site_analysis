@@ -161,17 +161,20 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.figure(figsize=(10, 10))
             plt.subplot(211)
             # bin_log_resids, bin_freqs = binning(log_residuals, self.Amp['Freq'], 10)  # bin only when plotting
-            plt.title('{0} : Log Residuals - Misfit: {1}.'.format(self.site, np.round(log_rms_misfit, 5)))
+            plt.title('{0} : Log Residuals - Misfit: ({1}, {2}).'.format(self.site, np.round(log_rms_misfit, 5),
+                                                                         np.round(x_cor, 5)))
             plt.plot(_freqs, log_residuals, 'ko', label='Residuals')
             plt.hlines(0, 0.1, 25, linestyles='dashed', colors='red')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('Log Residuals')
+            plt.grid(which='both')
 
             plt.subplot(212)
             plt.plot(_freqs, observed, 'k')
             plt.plot(_freqs, np.log(predicted), 'r')
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('SB Ratio / SHTF')
+            plt.grid(which='both')
             plt.show()
             # self.linear_forward_model_1d(elastic=elastic, plot_on=True, freqs=freqs)
             # self.plot_sb(stdv=(1,))
