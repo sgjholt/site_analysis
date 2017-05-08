@@ -1,12 +1,16 @@
+# built-ins
 import sys
+import glob
 sys.path.insert(0, '../SeismicSiteTool/')
-import site_class as sc
-import libs.SiteModel as sm
-import matplotlib.pyplot as plt
+# 3rd party dependencies
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
 from obspy.signal.konnoohmachismoothing import konno_ohmachi_smoothing
+# my code / custom libs (SiteModel)
+import site_class as sc
+import libs.SiteModel as sm
+import matplotlib.pyplot as plt
 from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, uniform_sub_model_space
 
 # import itertools
@@ -428,3 +432,8 @@ class Sim1D(sc.Site, sm.Site1D):
         self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
         self.__add_site_profile()
         self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
+
+    @staticmethod
+    def read_post_sim_data(directory, run=0):
+        directory = '/data/share/Japan/SiteInfo/S_B/' + directory
+        return [pd.read_csv(df, index_col=0) for df in sorted(glob.glob(directory + '*run{0}*'.format(run)))]
