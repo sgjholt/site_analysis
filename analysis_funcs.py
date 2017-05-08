@@ -110,7 +110,9 @@ def vel_model_range(orig, subset, thresh, site_obj, pct_v, save=False, user='sgj
 
 
 def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False,
-                       fill_troughs_pct=None, sub_layers=True, save=False, dpi=None, user='sgjholt', subplots=False):
+                       fill_troughs_pct=None, sub_layers=True, save=False, dpi=None, user='sgjholt', subplots=False,
+                       motion='outcrop'):
+
     orig.freq_mis = exp_cdf(orig.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
     orig.amp_mis = (orig.amp_mis - orig.amp_mis.min()) / (
     orig.amp_mis.max() - orig.amp_mis.min())  # apply normalisation (rms)
@@ -122,7 +124,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
     if not subplots:
         fig = plt.figure(figsize=(14, 9))
         ax = fig.add_subplot(1, 1, 1)
-        site_obj.elastic_forward_model(elastic=False, plot_on=True)
+        site_obj.elastic_forward_model(elastic=False, plot_on=True, motion=motion)
         font = {'weight': 'bold',
                 'size': 18}
 
@@ -138,10 +140,10 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         model = subset.loc[subset.index[0]][0:-3].values
         site_obj.modify_site_model(model, sub_layers=sub_layers)
         if fill_troughs_pct is not None:
-            plt.plot(_freqs, fill_troughs(site_obj.elastic_forward_model(elastic=elastic)[::, 0],
+            plt.plot(_freqs, fill_troughs(site_obj.elastic_forward_model(elastic=elastic, motion=motion)[::, 0],
                                           pct=fill_troughs_pct))
         else:
-            plt.plot(site_obj.Amp['Freq'], site_obj.elastic_forward_model(elastic=elastic)[::, 0],
+            plt.plot(site_obj.Amp['Freq'], site_obj.elastic_forward_model(elastic=elastic, motion=motion)[::, 0],
                      label='SHTF - Optimised')
 
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
@@ -154,18 +156,18 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
             model = np.array([num[1] for num in row[1].iteritems()])
             site_obj.modify_site_model(model[0:-3], sub_layers=sub_layers)
             if fill_troughs_pct is not None:
-                fwd = fill_troughs(site_obj.elastic_forward_model(elastic=elastic, freqs=freqs)[::, 0],
+                fwd = fill_troughs(site_obj.elastic_forward_model(elastic=elastic, motion=motion)[::, 0],
                                    pct=fill_troughs_pct)
             else:
-                fwd = site_obj.elastic_forward_model(elastic=elastic)
+                fwd = site_obj.elastic_forward_model(elastic=elastic, motion=motion)
             plt.plot(site_obj.Amp['Freq'], fwd, label='amp_mis={0}, freq_mis={1}'.format(np.round(model[-3], 5),
                                                                                          np.round(model[-2], 5)))
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
 
     if minimum is not None:
-        mfit = np.round(orig.amp_mis.min(), 2), np.round(orig.freq_mis.min(), 2)
+        mfit = np.round(orig.amp_mis.min(), 4), np.round(orig.freq_mis.min(), 4)
     if thrsh is not None:
-        mfit = np.round(thrsh[0], 2), np.round(thrsh[1], 2)
+        mfit = np.round(thrsh[0], 2), np.round(thrsh[1], 4)
 
     ax.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
     ax.grid(which='minor', alpha=0.5)
