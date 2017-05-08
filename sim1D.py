@@ -76,9 +76,9 @@ class Sim1D(sc.Site, sm.Site1D):
 
         if konno_ohmachi is not None:
             # if not none then value should be int containing bandwidth parameter b
-            self.Amp['Shtf'] = konno_ohmachi_smoothing(np.abs(self.Amp['Shtf']),
+            self.Amp['Shtf'] = konno_ohmachi_smoothing(np.abs(self.Amp['Shtf'])[::, 0],
                                                        np.array(self.Amp['Freq']).astype(float),
-                                                       bandwidth=konno_ohmachi)
+                                                       bandwidth=konno_ohmachi, normalize=True)
 
         if plot_on:
             if self.litho:
