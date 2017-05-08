@@ -313,15 +313,17 @@ class Sim1D(sc.Site, sm.Site1D):
 
         # run original model
         _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                      fill_troughs_pct=fill_troughs_pct,
-                                                      i_ang=i_ang, x_cor_range=x_cor_range, motion=motion)
+                                           fill_troughs_pct=fill_troughs_pct,
+                                           i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                           konno_ohmachi=konno_ohmachi)
         if debug:
             self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                        fill_troughs_pct=fill_troughs_pct,
-                        i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion)
+                        fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
+                        motion=motion, konno_ohmachi=konno_ohmachi)
         print(
-            "Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]], amp_mis,
-                                                                     0))
+            "Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]],
+                                                                           np.round(amp_mis, 3), 0,
+                                                                           np.round(freq_mis, 3)))
         # store result in pandas data frame
         results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, 0]
         # loop over the model realisations picked at random and calculate misfit
@@ -329,15 +331,17 @@ class Sim1D(sc.Site, sm.Site1D):
             self.modify_site_model(model)  # change the model in Valerio's SiteModel class
             # calculate misfit
             _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                          fill_troughs_pct=fill_troughs_pct,
-                                                          i_ang=i_ang, x_cor_range=x_cor_range, motion=motion)
+                                               fill_troughs_pct=fill_troughs_pct,
+                                               i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                               konno_ohmachi=konno_ohmachi)
             if debug:
                 self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                            fill_troughs_pct=fill_troughs_pct,
-                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion)
+                            fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
+                            motion=motion, konno_ohmachi=konno_ohmachi)
             # store result in data frame
             results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, 0]
-            print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, amp_mis, 0))
+            print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3), 0,
+                                                                                 np.round(freq_mis, 3)))
         if save:
             results.to_csv(self.simulation_path + 'n_sub_' + str(0) + '.csv')
         else:
@@ -375,15 +379,19 @@ class Sim1D(sc.Site, sm.Site1D):
             # SETUP END #
             # run original model
             _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                                          fill_troughs_pct=fill_troughs_pct,
-                                                          i_ang=i_ang, x_cor_range=x_cor_range, motion=motion)
+                                               fill_troughs_pct=fill_troughs_pct,
+                                               i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                               konno_ohmachi=konno_ohmachi)
             if debug:
                 self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                             fill_troughs_pct=fill_troughs_pct,
-                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion)
+                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion,
+                            konno_ohmachi=konno_ohmachi)
 
-            print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(0, orig_sub.tolist() + [self.Mod['Qs'][0]],
-                                                                           amp_mis, n_layers))
+            print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, orig_sub.tolist() + [
+                self.Mod['Qs'][0]],
+                                                                                 np.round(amp_mis, 3), n_layers,
+                                                                                 np.round(freq_mis, 3)))
             # store result in pandas data frame
             results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, n_layers]
             # loop over the model realisations picked at random and calculate misfit
@@ -393,13 +401,15 @@ class Sim1D(sc.Site, sm.Site1D):
                 # calculate misfit
                 _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                    fill_troughs_pct=fill_troughs_pct, i_ang=i_ang,
-                                                   x_cor_range=x_cor_range, motion=motion)
+                                                   x_cor_range=x_cor_range, motion=motion, konno_ohmachi=konno_ohmachi)
                 if debug:
                     self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion)
+                                fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
+                                motion=motion, konno_ohmachi=konno_ohmachi)
                 # store result in data frame
                 results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, n_layers]
-                print("Trial:{0}-Model:{1}-Misfit:{2}-N_sub_layers:{3}".format(i + 1, model, amp_mis, n_layers))
+                print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3),
+                                                                                     n_layers, np.round(freq_mis, 3)))
 
             if save:  # save the file as csv
                 # results.to_csv(self.simulation_path+'.csv')
