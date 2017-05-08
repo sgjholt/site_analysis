@@ -114,7 +114,7 @@ class Sim1D(sc.Site, sm.Site1D):
         std = sb_table.loc['std'].values  # std of ln values
         _freqs = sb_table.columns.values.astype(float)  # str by default
         freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
-        predicted = self.elastic_forward_model(i_ang, elastic, motion=motion)[::, 0]  # calc fwd model
+        predicted = self.linear_forward_model_1d(i_ang, elastic, motion=motion)[::, 0]  # calc fwd model
 
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
@@ -160,7 +160,7 @@ class Sim1D(sc.Site, sm.Site1D):
             plt.xlabel('Frequency [Hz]')
             plt.ylabel('SB Ratio / SHTF')
             plt.show()
-            # self.elastic_forward_model(elastic=elastic, plot_on=True, freqs=freqs)
+            # self.linear_forward_model_1d(elastic=elastic, plot_on=True, freqs=freqs)
             # self.plot_sb(stdv=(1,))
 
         else:

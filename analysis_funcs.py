@@ -124,7 +124,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
     if not subplots:
         fig = plt.figure(figsize=(14, 9))
         ax = fig.add_subplot(1, 1, 1)
-        site_obj.elastic_forward_model(elastic=False, plot_on=True, motion=motion)
+        site_obj.linear_forward_model_1d(elastic=False, plot_on=True, motion=motion)
         font = {'weight': 'bold',
                 'size': 18}
 
@@ -140,10 +140,10 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         model = subset.loc[subset.index[0]][0:-3].values
         site_obj.modify_site_model(model, sub_layers=sub_layers)
         if fill_troughs_pct is not None:
-            plt.plot(_freqs, fill_troughs(site_obj.elastic_forward_model(elastic=elastic, motion=motion)[::, 0],
+            plt.plot(_freqs, fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion)[::, 0],
                                           pct=fill_troughs_pct))
         else:
-            plt.plot(site_obj.Amp['Freq'], site_obj.elastic_forward_model(elastic=elastic, motion=motion)[::, 0],
+            plt.plot(site_obj.Amp['Freq'], site_obj.linear_forward_model_1d(elastic=elastic, motion=motion)[::, 0],
                      label='SHTF - Optimised')
 
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
@@ -156,10 +156,10 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
             model = np.array([num[1] for num in row[1].iteritems()])
             site_obj.modify_site_model(model[0:-3], sub_layers=sub_layers)
             if fill_troughs_pct is not None:
-                fwd = fill_troughs(site_obj.elastic_forward_model(elastic=elastic, motion=motion)[::, 0],
+                fwd = fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion)[::, 0],
                                    pct=fill_troughs_pct)
             else:
-                fwd = site_obj.elastic_forward_model(elastic=elastic, motion=motion)
+                fwd = site_obj.linear_forward_model_1d(elastic=elastic, motion=motion)
             plt.plot(site_obj.Amp['Freq'], fwd, label='amp_mis={0}, freq_mis={1}'.format(np.round(model[-3], 5),
                                                                                          np.round(model[-2], 5)))
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
@@ -208,11 +208,11 @@ def randomise_q(site_obj):
 
 def search_qs(site_obj, its):
     site_obj.Mod['Qs'] = [10 for _ in site_obj.get_velocity_profile()['vs']]
-    site_obj.elastic_forward_model(elastic=False, plot_on=True, show=False)
+    site_obj.linear_forward_model_1d(elastic=False, plot_on=True, show=False)
     mods = [site_obj.Mod['Qs']]
     for i in range(its+1):
         randomise_q(site_obj)
-        site_obj.elastic_forward_model(elastic=False, plot_on=True, show=False)
+        site_obj.linear_forward_model_1d(elastic=False, plot_on=True, show=False)
         print('{0}'.format(site_obj.Mod['Qs']))
         mods.append([str(num) for num in site_obj.Mod['Qs']])
     plt.legend([mod for mod in mods])
@@ -232,7 +232,7 @@ def compare_strata(site_obj):
             plt.legend()
             plt.subplot(122)
         plt.loglog(data[:, 0], data[:, 1], label='{0}'.format(files[i].split(' m ')[-1].split('-')[0]))
-    site_obj.elastic_forward_model(elastic=False, plot_on=True)
+    site_obj.linear_forward_model_1d(elastic=False, plot_on=True)
     site_obj.plot_sb(stdv=(1,))
     plt.xlabel('Freq [Hz]')
     plt.ylabel('SB Ratio')
@@ -277,14 +277,14 @@ def plotr():
 
 
 def compare_fill(site_obj, fill_pct=()):
-    dat = site_obj.elastic_forward_model(elastic=False)[::, 0]
+    dat = site_obj.linear_forward_model_1d(elastic=False)[::, 0]
     plt.figure(1)
     for pct in fill_pct:
         plt.plot(site_obj.Amp['Freq'], fill_troughs(dat, pct), label='{0} pct fill'.format(pct))
     plt.grid(which='both')
     plt.legend()
     site_obj.plot_sb(stdv=(1,))
-    site_obj.elastic_forward_model(elastic=False, plot_on=True)
+    site_obj.linear_forward_model_1d(elastic=False, plot_on=True)
 
 
 # Only works to plot strata data files - oc2within v oc2oc
