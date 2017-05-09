@@ -12,7 +12,7 @@ import site_class as sc
 import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, uniform_sub_model_space
-
+from parsers import parse_simulation_cfg
 # import itertools
 
 
@@ -21,6 +21,7 @@ class Sim1D(sc.Site, sm.Site1D):
     model_space = []
     run_dir = ''
     simulation_path = ''
+    sim_pars = {}
 
     def __init__(self, name, working_directory, run_dir=None, litho=False, vel_file_dir=None):
         """
@@ -433,8 +434,7 @@ class Sim1D(sc.Site, sm.Site1D):
         self.__add_site_profile()
         self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
 
-    @staticmethod
-    def read_post_sim_data(directory, run=0):
+    def read_post_sim_data(self, directory, run=0):
         directory = '/data/share/Japan/SiteInfo/S_B/' + directory
-        self.sim_pars = ''
+        self.sim_pars = parse_simulation_cfg(glob.glob(directory+'*run{0}*.cfg')[0])
         return [pd.read_csv(df, index_col=0) for df in sorted(glob.glob(directory + '*run{0}*.csv'.format(run)))]

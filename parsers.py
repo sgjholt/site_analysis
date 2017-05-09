@@ -1,7 +1,10 @@
 # Parsers used for the site_class object
-
+import gzip
+import datetime
 import numpy as np
+import scipy.signal as sig
 import pandas as pd
+from obspy import UTCDateTime
 
 
 def parse_ben_sb(parent_directory, code):
@@ -100,6 +103,7 @@ def parse_litho(path):
 
     return litho_names, litho_vals
 
+
 def readKiknet(fname, grabsignal=True):
     if fname.endswith(".gz"):
         with gzip.open(fname, 'rt', newline='\n') as f:
@@ -172,9 +176,22 @@ def readKiknet(fname, grabsignal=True):
                 "recordtime": rdate_time}
 
 
-def parse_simulatation_cfg(path):
+def parse_simulation_cfg(path):
+    """
+    
+    :param path: 
+    :return: 
+    """
     with open(path, 'rt') as f:
         for _ in range(5):  # skip the first couple of lines
             next(f)
-        contents = [line.strip('\n').split('=') for line in f]
-    return contents
+        contents = [line.strip('\n').split(' = ') for line in f]
+    return dict(contents)
+
+
+#for key, val in out.items():
+#    if val.isnumeric:
+#        out[key] = float(val)
+#    if val.startswith('('):
+#        out[key] = val
+
