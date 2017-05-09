@@ -18,8 +18,14 @@ __author__ = 'James Holt'
 def main():
     site = sys.argv[1]
     iterations = int(sys.argv[2])
-    motion = str(sys.argv[3])
-    konno_ohmachi = 20
+
+    try:
+        motion = str(sys.argv[3])
+        konno_ohmachi = int(sys.argv[4])
+    except IndexError:
+        motion = 'outcrop'
+        konno_ohmachi = None
+
     name = site + '_rnd_ufm_' + '_' + str(iterations) + '_run_0_'
     wd = '/data/share/Japan/SiteInfo/S_B/Repi_lessthan_300_depth_lessthan_25/'
     rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl_{1}_smooth-{2}/'.format(site, motion, konno_ohmachi)
@@ -36,7 +42,7 @@ def main():
         print('name changed to: {0}'.format(name))
 
     sub_uniform_search(site, wd, rd, 25, 10, iterations, name, 0, (0.5, 25), 100, False, False, None,
-                       (1, 2, 3), motion, konno_ohmachi)
+                       (1, 2, 3, 4), motion, konno_ohmachi)
 
 
 def sub_uniform_search(*args):
