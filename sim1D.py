@@ -436,5 +436,5 @@ class Sim1D(sc.Site, sm.Site1D):
 
     def read_post_sim_data(self, directory, run=0):
         directory = '/data/share/Japan/SiteInfo/S_B/' + directory
-        self.sim_pars = parse_simulation_cfg(glob.glob(directory+'*run_{0}*.cfg')[0])
+        self.sim_pars = parse_simulation_cfg(glob.glob(directory+'*run_{0}*.cfg'.format(run))[0])
         return [pd.read_csv(df, index_col=0) for df in sorted(glob.glob(directory + '*run_{0}*.csv'.format(run)))]
