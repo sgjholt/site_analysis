@@ -1,4 +1,12 @@
-# Personal site_analysis toolbox
+#**Personal site_analysis toolbox**
 
-This toolbox contains classes and functions specifically to aid my current research. I will look at methodologies to 
-reduce epistemic uncertainty on site specific seismic hazard analysis.
+This repository contains scripts currently under development to analyse site conditions.
+
+The library is intended for my own personal research. 
+
+Currently I am investigating the potential to calibrate site specific seismic velocity profiles using the 
+Surface-to-Borehole ratio as a target. 
+
+I will continue to update this page as development continues, currently the codes are in a very early state and
+the validity of this method is being tested. 
+

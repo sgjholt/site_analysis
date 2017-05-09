@@ -8,7 +8,6 @@ from find_peaks import detect_peaks
 from parsers import readKiknet
 
 
-
 def rand_sites(sample_size):
     sites = sorted(pd.read_csv('/data/share/Japan/Kik_catalogue.csv', index_col=0).site.unique())
     return [sites[num] for num in random.sample(range(len(sites)-1), sample_size)]
