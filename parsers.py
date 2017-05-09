@@ -170,3 +170,11 @@ def readKiknet(fname, grabsignal=True):
                 "instrument": where, "sitelatlon": (slat, slong), "eqlatlon": (olat, olong),
                 "eqdepth": eqdepth, "station height": sheight, "pga": pga,
                 "recordtime": rdate_time}
+
+
+def parse_simulatation_cfg(path):
+    with open(path, 'rt') as f:
+        for _ in range(5):  # skip the first couple of lines
+            next(f)
+        contents = [line.strip('\n').split('=') for line in f]
+    return contents
