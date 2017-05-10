@@ -67,41 +67,57 @@ def qc_sb(working_dir, sites=None, random=False):
     plt.show()
 
 
-def vel_model_range(orig, subset, thresh, site_obj, pct_v, save=False, user='sgjholt', dpi=None):
+def vel_model_range(site_obj, orig, thrsh=(), save=False, user='sgjholt', dpi=None):
     """
-
+    :param site_obj
     :param orig:
-    :param subset:
-    :param thresh:
-    :param site:
-    :param pct_v:
+    :param thrsh:
+    :param save:
+    :param user:
+    :param dpi:
     :return:
     """
-    layers = [x for x in range(1, len(orig.loc[0][0:-5]) + 1)]
+
+    orig_c = orig.copy(deep=True)
+
+    orig_c.freq_mis = exp_cdf(orig_c.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
+    # apply normalisation (rms)
+    orig_c.amp_mis = (orig_c.amp_mis - orig_c.amp_mis.min()) / (orig_c.amp_mis.max() - orig_c.amp_mis.min())
+
+    pct_v = int(site_obj.sim_pars['pct_variation'])
+
+    # subset = orig.apply(np.abs)
+    subset = orig_c[orig_c.freq_mis <= orig_c.freq_mis[0] * thrsh[1]]
+    subset = subset[subset.amp_mis <= orig_c.amp_mis[0] * thrsh[0]]
+    print('{0} models found'.format(len(subset)))
+
+    layers = [x - 0.5 for x in range(1, len(orig_c.loc[0][0:-4]) + 1)]
     layers.append(layers[-1] + 1)
 
-    plt.figure(figsize=(8, 13))
+    fig, ax = plt.subplots(figsize=(8, 13))
+    # repeat half-space velocity so the step plot can show variation in half-space layer clearly
+    vels = np.array(orig_c.loc[0][0:-4].values.tolist() + [orig_c.loc[0][0:-4].values[-1]])
 
-    vels = np.array(orig.loc[0][0:-5].values.tolist() + [orig.loc[0][0:-5].values[-1]])
-
-    plt.step(vels, layers, 'k', linewidth=2, label='orig')
-    plt.step(vels * (1 - pct_v / 100), layers, 'r', linestyle='dashed', label='model range')
-    plt.step(vels * (1 + pct_v / 100), layers, 'r', linestyle='dashed')
-    plt.step(subset.min(axis=0)[0:-5].values.tolist() + [subset.min(axis=0)[0:-5].values[-1]], layers, 'b',
-             label='range < tot_mis={}'.format(thresh))
-    plt.step(subset.max(axis=0)[0:-5].values.tolist() + [subset.max(axis=0)[0:-5].values[-1]], layers, 'b')
-
+    ax.step(vels, layers, 'k', linewidth=2, label='orig')
+    ax.step(vels * (1 - pct_v / 100), layers, 'r', linestyle='dashed', label='model range')
+    ax.step(vels * (1 + pct_v / 100), layers, 'r', linestyle='dashed')
+    ax.step(subset.min(axis=0)[0:-4].values.tolist() + [subset.min(axis=0)[0:-4].values[-1]], layers, 'b',
+            label='range < tot_mis={}'.format((round(
+                orig_c.amp_mis[0] * thrsh[0], 3), round(orig_c.freq_mis[0] * thrsh[1], 3))))
+    ax.step(subset.max(axis=0)[0:-4].values.tolist() + [subset.max(axis=0)[0:-4].values[-1]], layers, 'b')
+    plt.ylim([0.5, layers[-2] + 1])
     plt.gca().invert_yaxis()
     plt.xlabel('Vs [m/s]')
     plt.ylabel('layer num')
     plt.title('Model w/Misfit < Original {0}\n Sub-Layers: {1}'.format(site_obj.site,
-                                                                       orig.n_sub_layers.values[0].astype(int)))
+                                                                       orig_c.n_sub_layers.values[0].astype(int)))
     plt.legend()
+    ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
 
     if save:
         plt.savefig(
             '/home/{3}/plots/synthetic_tests/{0}-MC-Vel-Model-{1}-iterations-Misfit-loe{2}-Sub-layers-{4}.pdf'.format(
-                site_obj.site, len(orig) - 1, thresh, user, orig.n_sub_layers[0].astype(int)), dpi=dpi, facecolor='w',
+                site_obj.site, len(orig) - 1, thrsh, user, orig_c.n_sub_layers[0].astype(int)), dpi=dpi, facecolor='w',
             edgecolor='w', orientation='portrait', format='pdf', transparent=False, bbox_inches=None,
             pad_inches=0.1, frameon=None)
     else:
@@ -111,10 +127,11 @@ def vel_model_range(orig, subset, thresh, site_obj, pct_v, save=False, user='sgj
 def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False,
                        fill_troughs_pct=None, sub_layers=True, save=False, dpi=None, user='sgjholt', subplots=False,
                        motion='outcrop', konno_ohmachi=None):
+    orig_c = orig.copy(deep=True)
 
-    orig.freq_mis = exp_cdf(orig.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
+    orig_c.freq_mis = exp_cdf(orig_c.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
     # apply normalisation (rms)
-    orig.amp_mis = (orig.amp_mis - orig.amp_mis.min()) / (orig.amp_mis.max() - orig.amp_mis.min())
+    orig_c.amp_mis = (orig_c.amp_mis - orig_c.amp_mis.min()) / (orig_c.amp_mis.max() - orig_c.amp_mis.min())
 
     site_obj.reset_site_model()
 
@@ -133,7 +150,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
     if minimum is not None:
         # find all models better(or equal to) original model - make sure absolute value of f_lag considered
         # subset = orig.apply(np.abs)
-        subset = orig[orig.freq_mis <= orig.freq_mis.min()]
+        subset = orig_c[orig_c.freq_mis <= orig_c.freq_mis.min()]
         subset = subset[subset.amp_mis <= subset.amp_mis.min()]
 
         model = subset.loc[subset.index[0]][0:-3].values
@@ -152,8 +169,9 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
     if thrsh is not None:
 
         #  subset = orig.apply(np.abs)
-        subset = orig[orig.freq_mis <= orig.freq_mis[0] * thrsh[1]]
-        subset = subset[subset.amp_mis <= orig.amp_mis[0] * thrsh[0]]
+        subset = orig_c[orig_c.freq_mis <= orig_c.freq_mis[0] * thrsh[1]]
+        subset = subset[subset.amp_mis <= orig_c.amp_mis[0] * thrsh[0]]
+        print('{0} models found'.format(len(subset)))
         for row in subset.iterrows():
             model = np.array([num[1] for num in row[1].iteritems()])
             site_obj.modify_site_model(model[0:-3], sub_layers=sub_layers)
@@ -168,9 +186,9 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
 
     if minimum is not None:
-        mfit = np.round(orig.amp_mis.min(), 4), np.round(orig.freq_mis.min(), 4)
+        mfit = np.round(orig_c.amp_mis.min(), 4), np.round(orig_c.freq_mis.min(), 4)
     if thrsh is not None:
-        mfit = np.round(thrsh[0], 2), np.round(thrsh[1], 4)
+        mfit = np.round(orig_c.amp_mis[0] * thrsh[0], 2), np.round(orig_c.freq_mis[0] * thrsh[1], 4)
 
     ax.set_xticks([0.1, 1, 5, 10, 15, 20, 25])
     ax.grid(which='minor', alpha=0.5)
@@ -180,15 +198,16 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(
         lambda y, pos: ('{{:.{:1d}f}}'.format(int(np.maximum(-np.log10(y), 0)))).format(y)))
 
-    plt.title('{0}: MC - {1} - iterations - Misfit <= {2} - Sub-layers: {3}'.format(site_obj.site, len(orig) - 1, mfit,
-                                                                                    orig.n_sub_layers[0].astype(int)))
+    plt.title(
+        '{0}: MC - {1} - iterations - Misfit <= {2} - Sub-layers: {3}'.format(site_obj.site, len(orig_c) - 1, mfit,
+                                                                              orig_c.n_sub_layers[0].astype(int)))
     plt.axis('tight')
 
     plt.legend(loc=2)
 
     if save:
         plt.savefig('/home/{4}/plots/synthetic_tests/{0}-MC-{1}-iterations-Misfit-loe{2}-{3}-Sub-layers-{5}.pdf'.format(
-            site_obj.site, len(orig) - 1, thrsh[0], thrsh[1], user, orig.n_sub_layers[0].astype(int)), dpi=dpi,
+            site_obj.site, len(orig_c) - 1, thrsh[0], thrsh[1], user, orig.n_sub_layers[0].astype(int)), dpi=dpi,
             facecolor='w',
             edgecolor='w', orientation='portrait', format='pdf', transparent=False, bbox_inches=None,
             pad_inches=0.1, frameon=None)
@@ -322,8 +341,8 @@ def plot_comp_strata(site_obj, path):
 
 
 def plot_misfit_space(table):
-
-    amp_normed = table.amp_mis.values/np.sqrt(np.trapz(table.amp_mis.values**2))
+    # amp_normed = table.amp_mis.values/np.sqrt(np.trapz(table.amp_mis.values**2))
+    amp_normed = (table.amp_mis - table.amp_mis.min()) / (table.amp_mis.max() - table.amp_mis.min())
     xcor_normed = exp_cdf(np.abs(table.freq_mis.values), lam=1)
 
     def onpick(event):
