@@ -7,6 +7,7 @@
 #
 # ---------------------------------modules--------------------------------------#
 import time
+import datetime
 import os
 import sys
 import sim1D as sd
@@ -16,6 +17,10 @@ __author__ = 'James Holt'
 
 
 def main():
+    """
+    
+    :return: 
+    """
     site = sys.argv[1]
     iterations = int(sys.argv[2])
 
@@ -70,38 +75,7 @@ def sub_uniform_search(*args):
                                    n_sub_layers=n_sub_layers, motion=motion, konno_ohmachi=konno_ohmachi)
 
 
-#def uniform_search(*args):
-#    """
-#    UNFINISHED
-#    :param args:
-#    :return:
-#    """
-#    site, wd, rd, pct, steps, iters, name, weights, lam, i_ang, x_range, const_q, elastic, cadet_correct, \
-#    fill_troughs, n_sub_layers = args
-#    titles = ['site', 'SB_dir', 'run_dir', 'pct_variation', 'model_steps', 'iterations', 'misfit_weights', 'lambda',
-#              'i_ang', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct', 'fill_troughs', 'n_sub_layers']
-#    vrs = [site, wd, rd, pct, steps, iters, weights, lam, i_ang, x_range, const_q, elastic, cadet_correct, fill_troughs,
-#           n_sub_layers]
-
-#    with open(rd + name + '.cfg', 'wt') as f:
-#        f.write('config file for {0}'.format(name).upper())
-#        f.write('\n')
-#        f.write('\n')
-#        for i, title in enumerate(titles):
-#            f.write("{0} = {1}".format(title, vrs[i]))
-#            f.write('\n')
-
-#    site = sd.Sim1D(site, working_directory=wd, run_dir=rd)
-
-#    site.uniform_sub_random_search(pct_variation=pct, steps=steps, iterations=iters, name=name, weights=weights,
-#                                   lam=lam,
-#                                   i_ang=i_ang, x_cor_range=x_range, const_q=const_q, elastic=elastic,
-#                                   cadet_correct=cadet_correct, fill_troughs_pct=fill_troughs, save=True,
-#                                   n_sub_layers=n_sub_layers)
-
 if __name__ == '__main__':
     start_time = time.time()
     main()
-    print("--- {0} seconds elapsed ---".format(time.time() - start_time))
-
-
+    print("--- elapsed time: {0}  ---".format(datetime.timedelta(seconds=(time.time() - start_time))))
