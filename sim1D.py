@@ -22,6 +22,7 @@ class Sim1D(sc.Site, sm.Site1D):
     run_dir = ''
     simulation_path = ''
     sim_pars = {}
+    sim_results = []
 
     def __init__(self, name, working_directory, run_dir=None, litho=False, vel_file_dir=None):
         """
@@ -437,4 +438,6 @@ class Sim1D(sc.Site, sm.Site1D):
     def read_post_sim_data(self, directory, run=0, its=5000):
         directory = '/data/share/Japan/SiteInfo/S_B/' + directory
         self.sim_pars = parse_simulation_cfg(glob.glob(directory+'*{1}_run_{0}*.cfg'.format(run, its))[0])
-        return [pd.read_csv(df, index_col=0) for df in sorted(glob.glob(directory + '*{1}_run_{0}*.csv'.format(run, its)))]
+        self.sim_results = [pd.read_csv(df, index_col=0) for df in
+                            sorted(glob.glob(directory + '*{1}_run_{0}*.csv'.format(run, its)))]
+        return self.sim_results
