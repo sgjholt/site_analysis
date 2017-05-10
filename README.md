@@ -1,4 +1,4 @@
-#**Personal site_analysis toolbox**
+#**Site Analysis Toolbox**
 
 This repository contains scripts currently under development to analyse site conditions.
 
