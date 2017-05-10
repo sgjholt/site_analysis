@@ -113,8 +113,8 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
                        motion='outcrop', konno_ohmachi=None):
 
     orig.freq_mis = exp_cdf(orig.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
-    orig.amp_mis = (orig.amp_mis - orig.amp_mis.min()) / (
-    orig.amp_mis.max() - orig.amp_mis.min())  # apply normalisation (rms)
+    # apply normalisation (rms)
+    orig.amp_mis = (orig.amp_mis - orig.amp_mis.min()) / (orig.amp_mis.max() - orig.amp_mis.min())
 
     site_obj.reset_site_model()
 
@@ -132,8 +132,8 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
 
     if minimum is not None:
         # find all models better(or equal to) original model - make sure absolute value of f_lag considered
-        subset = orig.apply(np.abs)
-        subset = subset[subset.freq_mis <= subset.freq_mis.min()]
+        # subset = orig.apply(np.abs)
+        subset = orig[orig.freq_mis <= orig.freq_mis.min()]
         subset = subset[subset.amp_mis <= subset.amp_mis.min()]
 
         model = subset.loc[subset.index[0]][0:-3].values
@@ -150,9 +150,10 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
 
     if thrsh is not None:
-        subset = orig.apply(np.abs)
-        subset = subset[subset.freq_mis <= thrsh[1]]
-        subset = subset[subset.amp_mis <= thrsh[0]]
+
+        #  subset = orig.apply(np.abs)
+        subset = orig[orig.freq_mis <= orig.freq_mis[0] * thrsh[1]]
+        subset = subset[subset.amp_mis <= orig.amp_mis[0] * thrsh[0]]
         for row in subset.iterrows():
             model = np.array([num[1] for num in row[1].iteritems()])
             site_obj.modify_site_model(model[0:-3], sub_layers=sub_layers)
