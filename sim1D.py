@@ -104,7 +104,7 @@ class Sim1D(sc.Site, sm.Site1D):
             if show:
                 plt.show()
         else:
-            return np.abs(self.Amp['Shtf'])
+            return np.abs(self.Amp['Shtf'])[::, 0]
 
     def misfit(self, i_ang=0, x_cor_range=(0, 25), elastic=True, motion='outcrop', plot_on=False, show=False,
                cadet_correct=False, fill_troughs_pct=None, konno_ohmachi=None):
@@ -130,11 +130,8 @@ class Sim1D(sc.Site, sm.Site1D):
         # std = sb_table.loc['std'].values  # std of ln values
         _freqs = sb_table.columns.values.astype(float)  # str by default
         # freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
-        if konno_ohmachi is not None:
-            predicted = self.linear_forward_model_1d(i_ang, elastic, motion=motion,
-                                                     konno_ohmachi=konno_ohmachi)  # calc fwd model
-        else:
-            predicted = self.linear_forward_model_1d(i_ang, elastic, motion=motion)[::, 0]
+        # calc fwd model
+        predicted = self.linear_forward_model_1d(i_ang, elastic, motion=motion, konno_ohmachi=konno_ohmachi)
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
             return None  # return nothing to break out of function

@@ -110,7 +110,7 @@ def vel_model_range(orig, subset, thresh, site_obj, pct_v, save=False, user='sgj
 
 def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False,
                        fill_troughs_pct=None, sub_layers=True, save=False, dpi=None, user='sgjholt', subplots=False,
-                       motion='outcrop'):
+                       motion='outcrop', konno_ohmachi=None):
 
     orig.freq_mis = exp_cdf(orig.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
     orig.amp_mis = (orig.amp_mis - orig.amp_mis.min()) / (
@@ -123,7 +123,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
     if not subplots:
         fig = plt.figure(figsize=(14, 9))
         ax = fig.add_subplot(1, 1, 1)
-        site_obj.linear_forward_model_1d(elastic=False, plot_on=True, motion=motion)
+        site_obj.linear_forward_model_1d(elastic=False, plot_on=True, motion=motion, konno_ohmachi=konno_ohmachi)
         font = {'weight': 'bold',
                 'size': 18}
 
@@ -139,10 +139,12 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         model = subset.loc[subset.index[0]][0:-3].values
         site_obj.modify_site_model(model, sub_layers=sub_layers)
         if fill_troughs_pct is not None:
-            plt.plot(_freqs, fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion)[::, 0],
+            plt.plot(_freqs, fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion,
+                                                                           konno_ohmachi=konno_ohmachi),
                                           pct=fill_troughs_pct))
         else:
-            plt.plot(site_obj.Amp['Freq'], site_obj.linear_forward_model_1d(elastic=elastic, motion=motion)[::, 0],
+            plt.plot(site_obj.Amp['Freq'], site_obj.linear_forward_model_1d(elastic=elastic, motion=motion,
+                                                                            konno_ohmachi=konno_ohmachi),
                      label='SHTF - Optimised')
 
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
@@ -155,10 +157,11 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
             model = np.array([num[1] for num in row[1].iteritems()])
             site_obj.modify_site_model(model[0:-3], sub_layers=sub_layers)
             if fill_troughs_pct is not None:
-                fwd = fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion)[::, 0],
+                fwd = fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion,
+                                                                    konno_ohmachi=konno_ohmachi),
                                    pct=fill_troughs_pct)
             else:
-                fwd = site_obj.linear_forward_model_1d(elastic=elastic, motion=motion)
+                fwd = site_obj.linear_forward_model_1d(elastic=elastic, motion=motion, konno_ohmachi=konno_ohmachi)
             plt.plot(site_obj.Amp['Freq'], fwd, label='amp_mis={0}, freq_mis={1}'.format(np.round(model[-3], 5),
                                                                                          np.round(model[-2], 5)))
         site_obj.plot_sb(stdv=(1,), cadet_correct=cadet_correct)
@@ -276,7 +279,7 @@ def plotr():
 
 
 def compare_fill(site_obj, fill_pct=()):
-    dat = site_obj.linear_forward_model_1d(elastic=False)[::, 0]
+    dat = site_obj.linear_forward_model_1d(elastic=False)
     plt.figure(1)
     for pct in fill_pct:
         plt.plot(site_obj.Amp['Freq'], fill_troughs(dat, pct), label='{0} pct fill'.format(pct))
@@ -317,7 +320,7 @@ def plot_comp_strata(site_obj, path):
     plt.legend(loc=2)
 
 
-def plot_misfit_space(table, ):
+def plot_misfit_space(table):
 
     amp_normed = table.amp_mis.values/np.sqrt(np.trapz(table.amp_mis.values**2))
     xcor_normed = exp_cdf(np.abs(table.freq_mis.values), lam=1)
