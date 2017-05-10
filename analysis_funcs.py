@@ -126,8 +126,8 @@ def vel_model_range(site_obj, orig, thrsh=(), save=False, user='sgjholt', dpi=No
 
 def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False,
                        fill_troughs_pct=None, sub_layers=True, save=False, dpi=None, user='sgjholt', subplots=False,
-                       motion='outcrop', konno_ohmachi=None):
-    orig_c = orig.copy(deep=True)
+                       motion='outcrop', konno_ohmachi=None, legend=False):
+    orig_c = orig.apply(np.abs).copy(deep=True)
 
     orig_c.freq_mis = exp_cdf(orig_c.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
     # apply normalisation (rms)
@@ -340,10 +340,14 @@ def plot_comp_strata(site_obj, path):
     plt.legend(loc=2)
 
 
-def plot_misfit_space(table):
+def plot_misfit_space(site_obj, table, normalise=True):
     # amp_normed = table.amp_mis.values/np.sqrt(np.trapz(table.amp_mis.values**2))
-    amp_normed = (table.amp_mis - table.amp_mis.min()) / (table.amp_mis.max() - table.amp_mis.min())
-    xcor_normed = exp_cdf(np.abs(table.freq_mis.values), lam=1)
+    if not normalise:
+        amp_normed = table.amp_mis.values
+        xcor_normed = np.abs(table.freq_mis.values)
+    else:
+        amp_normed = (table.amp_mis - table.amp_mis.min()) / (table.amp_mis.max() - table.amp_mis.min())
+        xcor_normed = exp_cdf(np.abs(table.freq_mis.values), lam=1)
 
     def onpick(event):
         models = []
@@ -360,15 +364,25 @@ def plot_misfit_space(table):
     matplotlib.rc('font', **font)
     matplotlib.rc('lines', lw=2)
     ax.scatter(amp_normed, xcor_normed, picker=True, label='Random Trials')
-    ax.hlines(1, amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='red', label='Auto-Rejected Models')
+    if normalise:
+        ax.hlines(1, amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='red',
+                  label='Auto-Rejected Models')
     ax.hlines(xcor_normed[0], amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='blue')
     ax.vlines(amp_normed[0], xcor_normed.min(), xcor_normed.max(), linestyles='dashed', colors='blue')
     ax.scatter(amp_normed[0], xcor_normed[0], s=40, c='red', label='Initial Model')
-    plt.xlabel('$RMS$ $Normalised$')
-    plt.ylabel('$Frequency$ $Lag$ $Normalised$')
-    plt.title('Misfit Space:')
-    plt.ylim([-0.1, 1.05])
-    fig.canvas.mpl_connect('pick_event', onpick)
+    if not normalise:
+        plt.xlabel('$RMS$')
+        plt.ylabel('$|$ $Frequency$ $Lag$ $|$')
+    else:
+        plt.xlabel('$RMS$ $Normalised$')
+        plt.ylabel('$Frequency$ $Lag$ $Normalised$')
+        plt.ylim([-0.1, 1.05])
+
+    plt.title(
+        '{0}:Misfit Space-Iterations-{1}-Sub-layers:{2}'.format(site_obj.site, len(table) - 1,
+                                                                table.n_sub_layers[0].astype(int)))
     plt.legend(loc=1)
+    fig.canvas.mpl_connect('pick_event', onpick)
+
     # plt.xlim([0, amp_normed.max()+0.1])
     plt.show()
