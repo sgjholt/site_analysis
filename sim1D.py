@@ -85,6 +85,7 @@ class Sim1D(sc.Site, sm.Site1D):
             self.Amp['Shtf'] = konno_ohmachi_smoothing(np.abs(self.Amp['Shtf'])[::, 0],
                                                        np.array(self.Amp['Freq']).astype(float),
                                                        bandwidth=konno_ohmachi, normalize=True)
+        else:
 
         if plot_on:
             if self.litho:
@@ -104,7 +105,10 @@ class Sim1D(sc.Site, sm.Site1D):
             if show:
                 plt.show()
         else:
-            return np.abs(self.Amp['Shtf'])[::, 0]
+            if konno_ohmachi is not None:
+                return np.abs(self.Amp['Shtf'])
+            else:
+                return np.abs(self.Amp['Shtf'])
 
     def misfit(self, i_ang=0, x_cor_range=(0, 25), elastic=True, motion='outcrop', plot_on=False, show=False,
                cadet_correct=False, fill_troughs_pct=None, konno_ohmachi=None):
