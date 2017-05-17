@@ -367,8 +367,8 @@ def plot_misfit_space(site_obj, table, normalise=True):
     if normalise:
         ax.hlines(1, amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='red',
                   label='Auto-Rejected Models')
-    ax.hlines(xcor_normed[0], amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='blue')
-    ax.vlines(amp_normed[0], xcor_normed.min(), xcor_normed.max(), linestyles='dashed', colors='blue')
+    ax.hlines(xcor_normed[0], amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='red')
+    ax.vlines(amp_normed[0], xcor_normed.min(), xcor_normed.max(), linestyles='dashed', colors='red')
     ax.scatter(amp_normed[0], xcor_normed[0], s=40, c='red', label='Initial Model')
     if not normalise:
         plt.xlabel('$RMS$')
