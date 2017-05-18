@@ -121,7 +121,7 @@ class Site:
         if self.sb_ratio_store is None:
             self.sb_ratio_store = pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
         else:
-            print('already read sb table')
+            # print('already read sb table')
             return self.sb_ratio_store
 
         sb = self.sb_ratio_store
