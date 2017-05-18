@@ -47,6 +47,7 @@ class Site:
     vel_profile = None
     has_vel_profile = True
     vp_vs = None
+    sb_ratio_store = None
 
     def __init__(self, name, working_directory, vel_file_dir=None, metadata_path=None, arias_intensity_dir=None):
 
@@ -117,8 +118,12 @@ class Site:
         return self.vel_profile
 
     def sb_ratio(self, mod_factor=None, cadet_correct=False, prof=None, litho=False):
-        sb = pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
+        if self.sb_ratio_store is None:
+            self.sb_ratio_store = pd.read_csv(self.working_directory + self.site + '.csv', index_col=0)
+        else:
+            return self.sb_ratio_store
 
+        sb = self.sb_ratio_store
         if prof is not None:
             profile = prof
         else:
