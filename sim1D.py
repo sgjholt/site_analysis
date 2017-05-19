@@ -1,6 +1,7 @@
 # built-ins
 import sys
 import glob
+import math
 sys.path.insert(0, '../SeismicSiteTool/')
 # 3rd party dependencies
 import numpy as np
@@ -11,7 +12,8 @@ from obspy.signal.konnoohmachismoothing import konno_ohmachi_smoothing
 import site_class as sc
 import libs.SiteModel as sm
 import matplotlib.pyplot as plt
-from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, uniform_sub_model_space
+from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, \
+    uniform_sub_model_space, sig_resample
 from parsers import parse_simulation_cfg
 # import itertools
 
@@ -59,14 +61,15 @@ class Sim1D(sc.Site, sm.Site1D):
         if self.litho:  # add final half layer
             self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
 
-    def linear_forward_model_1d(self, i_ang=0, elastic=True, konno_ohmachi=None, motion='outcrop', plot_on=False,
-                                show=False):
+    def linear_forward_model_1d(self, i_ang=0, elastic=True, konno_ohmachi=None, motion='outcrop', log_sample=None,
+                                plot_on=False, show=False):
         """
 
         :param i_ang:
         :param elastic:
         :param:konno_ohmachi:
         :param motion:
+        :param log_sample:
         :param plot_on:
         :param show:
         :return:
@@ -76,7 +79,11 @@ class Sim1D(sc.Site, sm.Site1D):
             return None
 
         if len(self.Amp['Freq']) == 0:
-            self.Amp['Freq'] = self.sb_ratio().columns.values.astype(float).tolist()
+            if log_sample is not None:
+                self.Amp['Freq'] = np.logspace(math.log(0.1, log_sample[1]), math.log(25, log_sample[1]),
+                                               np.log(log_sample[0]), base=log_sample[1])
+            else:
+                self.Amp['Freq'] = self.sb_ratio().columns.values.astype(float).tolist()
 
         self.ComputeSHTF(i_ang, elastic, motion)
 
@@ -111,7 +118,7 @@ class Sim1D(sc.Site, sm.Site1D):
                 return np.abs(self.Amp['Shtf'])[::, 0]
 
     def misfit(self, i_ang=0, x_cor_range=(0, 25), elastic=True, motion='outcrop', plot_on=False, show=False,
-               cadet_correct=False, fill_troughs_pct=None, konno_ohmachi=None):
+               cadet_correct=False, fill_troughs_pct=None, konno_ohmachi=None, log_sample=None):
         """
 
         
@@ -125,22 +132,26 @@ class Sim1D(sc.Site, sm.Site1D):
         :param cadet_correct: Apply the correction to SB ratio detailed in Cadet et al. (2012) - bool - True/False
         :param fill_troughs_pct: Fill the troughs of theoretical waveform to a percentage of peak amplitudes
         :param konno_ohmachi
+        :param log_sample
         :return: None: if plot_on == True: else: tuple (log_resids, log_misfit, x_cor):
         """
         dt = 0.01  # time delta - ***TEMPORARY - NEEDS TO BE MORE FLEXIBLE ***
-        sb_table = self.sb_ratio(cadet_correct=cadet_correct)  # get the pandas table for sb site sb ratio
-
-        observed = sb_table.loc['mean'].values   # observed (mean of ln values) (normally distributed in logspace)
-        # std = sb_table.loc['std'].values  # std of ln values
-        _freqs = sb_table.columns.values.astype(float)  # str by default
-        # freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
-        # calc fwd model
-        predicted = self.linear_forward_model_1d(i_ang, elastic, motion=motion, konno_ohmachi=konno_ohmachi)
+        # get the pandas table for sb site sb ratio
+        predicted = self.linear_forward_model_1d(i_ang, elastic, motion=motion, konno_ohmachi=konno_ohmachi,
+                                                 log_sample=log_sample)
         if predicted is None:  # No forward model - return nothing
             print('Misfit not available - no forward model.')
             return None  # return nothing to break out of function
         if fill_troughs_pct is not None:
             predicted = fill_troughs(predicted, fill_troughs_pct)
+        observed = self.sb_ratio(cadet_correct=cadet_correct).loc[
+            'mean'].values  # observed (mean of ln values) (normally distributed in logspace)
+        # std = sb_table.loc['std'].values  # std of ln values
+        _freqs = self.Amp['Freqs']  # str by default
+        # freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
+        # calc fwd model
+        if log_sample is not None:  # must re-sample observed signal to match theoretical
+            observed = sig_resample(_freqs, observed, self.sb_ratio().columns.values.astype(float))
 
         log_residuals = (np.log(predicted) - observed)  # /std  # weighted by stdv
 
@@ -261,7 +272,7 @@ class Sim1D(sc.Site, sm.Site1D):
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, i_ang=0,
                                   x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
                                   fill_troughs_pct=None, save=False, gaussian_sampling=True, debug=False,
-                                  motion='outcrop', konno_ohmachi=None):
+                                  motion='outcrop', konno_ohmachi=None, log_sample=None):
         """
         UNFINISHED
 
@@ -324,11 +335,11 @@ class Sim1D(sc.Site, sm.Site1D):
         _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                            fill_troughs_pct=fill_troughs_pct,
                                            i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
-                                           konno_ohmachi=konno_ohmachi)
+                                           konno_ohmachi=konno_ohmachi, log_sample=log_sample)
         if debug:
             self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                         fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
-                        motion=motion, konno_ohmachi=konno_ohmachi)
+                        motion=motion, konno_ohmachi=konno_ohmachi, log_sample=log_sample)
         print(
             "Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]],
                                                                            np.round(amp_mis, 3), 0,
@@ -342,11 +353,11 @@ class Sim1D(sc.Site, sm.Site1D):
             _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                fill_troughs_pct=fill_troughs_pct,
                                                i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
-                                               konno_ohmachi=konno_ohmachi)
+                                               konno_ohmachi=konno_ohmachi, log_sample=log_sample)
             if debug:
                 self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                             fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
-                            motion=motion, konno_ohmachi=konno_ohmachi)
+                            motion=motion, konno_ohmachi=konno_ohmachi, log_sample=log_sample)
             # store result in data frame
             results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, 0]
             print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3), 0,
@@ -390,12 +401,12 @@ class Sim1D(sc.Site, sm.Site1D):
             _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                fill_troughs_pct=fill_troughs_pct,
                                                i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
-                                               konno_ohmachi=konno_ohmachi)
+                                               konno_ohmachi=konno_ohmachi, log_sample=log_sample)
             if debug:
                 self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                             fill_troughs_pct=fill_troughs_pct,
                             i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion,
-                            konno_ohmachi=konno_ohmachi)
+                            konno_ohmachi=konno_ohmachi, log_sample=log_sample)
 
             print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, orig_sub.tolist() + [
                 self.Mod['Qs'][0]],
@@ -410,11 +421,12 @@ class Sim1D(sc.Site, sm.Site1D):
                 # calculate misfit
                 _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                    fill_troughs_pct=fill_troughs_pct, i_ang=i_ang,
-                                                   x_cor_range=x_cor_range, motion=motion, konno_ohmachi=konno_ohmachi)
+                                                   x_cor_range=x_cor_range, motion=motion, konno_ohmachi=konno_ohmachi,
+                                                   log_sample=log_sample)
                 if debug:
                     self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                 fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
-                                motion=motion, konno_ohmachi=konno_ohmachi)
+                                motion=motion, konno_ohmachi=konno_ohmachi, log_sample=log_sample)
                 # store result in data frame
                 results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, n_layers]
                 print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3),
