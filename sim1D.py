@@ -81,7 +81,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if len(self.Amp['Freq']) == 0:
             if log_sample is not None:
                 self.Amp['Freq'] = np.logspace(math.log(0.1, log_sample[1]), math.log(25, log_sample[1]),
-                                               np.log(log_sample[0]), base=log_sample[1])
+                                               log_sample[0], base=log_sample[1])
             else:
                 self.Amp['Freq'] = self.sb_ratio().columns.values.astype(float).tolist()
 
