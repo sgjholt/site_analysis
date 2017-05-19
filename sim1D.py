@@ -147,7 +147,7 @@ class Sim1D(sc.Site, sm.Site1D):
         observed = self.sb_ratio(cadet_correct=cadet_correct).loc[
             'mean'].values  # observed (mean of ln values) (normally distributed in logspace)
         # std = sb_table.loc['std'].values  # std of ln values
-        _freqs = self.Amp['Freqs']  # str by default
+        _freqs = self.Amp['Freq']  # str by default
         # freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
         # calc fwd model
         if log_sample is not None:  # must re-sample observed signal to match theoretical
