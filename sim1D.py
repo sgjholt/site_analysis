@@ -223,7 +223,7 @@ class Sim1D(sc.Site, sm.Site1D):
         #  must change Thicknesses, Density, Vp, Vs, Qp an Qs
         if len(self.vel_profile['thickness']) != (len(model) - 1):  # if it has sub-layering - calc new layer thicks
             print('Calculating new layer thicknesses for given sub-layers')
-            subl_factor = int((len(model) - 1) / (len(self.Mod['Hl']) - 1))
+            subl_factor = int((len(model) - 1) / (len(self.vel_profile['thickness']) - 1))
             # print(subl_factor)  # how many sub-layers were used
             # # hl = np.zeros(len(model)-1)
             hl = []
