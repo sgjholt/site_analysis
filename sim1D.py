@@ -229,8 +229,8 @@ class Sim1D(sc.Site, sm.Site1D):
             hl = []
             # # vp_vs = np.zeros(len(model)-1)
             vp_vs = []
-            for i, zipped in enumerate(zip(self.Mod['Hl'], self.vp_vs)):
-                if i < len(self.Mod['Hl']) - 1:
+            for i, zipped in enumerate(zip(self.vel_profile['thickness'], self.vp_vs)):
+                if i < len(self.Mod['thickness']) - 1:
                     Hl, Vp_Vs = zipped
                     for n in range(subl_factor):
                         hl.append(Hl / subl_factor)
