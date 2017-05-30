@@ -450,13 +450,13 @@ class Sim1D(sc.Site, sm.Site1D):
         if not save:
             return results
 
-    def reset_site_model(self, custom_model=None):
+    def reset_site_model(self, custom_model=None, q_model=False):
         """
         Reset the model to the original site model.
         :return: None - inplace method
         """
         self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
-        self.__add_site_profile(custom_model=custom_model)
+        self.__add_site_profile(custom_model=custom_model, q_model=q_model)
         self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
 
     def read_post_sim_data(self, directory, run=0, its=5000, rtn=False):
