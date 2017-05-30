@@ -44,7 +44,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if self.litho:
             self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
 
-    def __add_site_profile(self):
+    def __add_site_profile(self, custom_model=None, q_model=False):
         """
 
         :return:
@@ -55,11 +55,15 @@ class Sim1D(sc.Site, sm.Site1D):
         if not self.has_vel_profile:  # printing is handled in the Site class to warn the user - just return None
             return None
 
-        vels = self.get_velocity_profile(litho=self.litho)
-        for i, hl in enumerate(vels['thickness']):
-            self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 100, 100])
-        if self.litho:  # add final half layer
-            self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
+        if custom_model is None:  # use the kik-net supplied model
+            vels = self.get_velocity_profile(litho=self.litho)
+            for i, hl in enumerate(vels['thickness']):
+                self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 100, 100])
+            if self.litho:  # add final half layer
+                self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
+        else:
+            self.modify_site_model(model=custom_model, q_model=q_model)
+
 
     def linear_forward_model_1d(self, i_ang=0, elastic=True, konno_ohmachi=None, motion='outcrop', log_sample=None,
                                 plot_on=False, show=False):
@@ -205,7 +209,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def modify_site_model(self, model, sub_layers=False):
+    def modify_site_model(self, model, q_model=False):
         """
         This function will modify the site model based on a specified Vs profile plus Qs value (model[-1])
 
@@ -213,61 +217,66 @@ class Sim1D(sc.Site, sm.Site1D):
         :param sub_layers: does the model need to adapt to a number of sub-layers?
         :return: None - this is an inplace method
         """
-        if sub_layers:  # need to modify the whole model to account for addition of sub-layers
-            # self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
-            # case 0 - 'Hl' has not been changed to represent sublayer thicknesses - not the correct length
-            # must change Thicknesses, Density, Vp, Vs, Qp an Qs
-            if len(self.Mod['Hl']) != (len(model) - 1):
-                print('Calculating new layer thicknesses for given sub-layers')
-                subl_factor = int((len(model) - 1) / (len(self.Mod['Hl']) - 1))
-                # print(subl_factor)  # how many sub-layers were used
-                # # hl = np.zeros(len(model)-1)
-                hl = []
-                # # vp_vs = np.zeros(len(model)-1)
-                vp_vs = []
-                for i, zipped in enumerate(zip(self.Mod['Hl'], self.vp_vs)):
-                    if i < len(self.Mod['Hl']) - 1:
-                        Hl, Vp_Vs = zipped
-                        for n in range(subl_factor):
-                            hl.append(Hl / subl_factor)
-                            vp_vs.append(Vp_Vs)
-                hl.append(self.Mod['Hl'][-1])  # add the half space layer
-                vp_vs.append(self.vp_vs[-1])  # vp/vs ratio for half space layer
-                #print(len(vp_vs), len(hl))
-                self.vp_vs = np.array(vp_vs)  # assign vp_vs back to self
-                self.Mod['Hl'] = hl  # assign layer thicknesses back to self
+        # if sub_layers:  # need to modify the whole model to account for addition of sub-layers
+        #  self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
+        #  case 0 - 'Hl' has not been changed to represent sublayer thicknesses - not the correct length
+        #  must change Thicknesses, Density, Vp, Vs, Qp an Qs
+        if len(self.vel_profile['thickness']) != (len(model) - 1):  # if it has sub-layering - calc new layer thicks
+            print('Calculating new layer thicknesses for given sub-layers')
+            subl_factor = int((len(model) - 1) / (len(self.Mod['Hl']) - 1))
+            # print(subl_factor)  # how many sub-layers were used
+            # # hl = np.zeros(len(model)-1)
+            hl = []
+            # # vp_vs = np.zeros(len(model)-1)
+            vp_vs = []
+            for i, zipped in enumerate(zip(self.Mod['Hl'], self.vp_vs)):
+                if i < len(self.Mod['Hl']) - 1:
+                    Hl, Vp_Vs = zipped
+                    for n in range(subl_factor):
+                        hl.append(Hl / subl_factor)
+                        vp_vs.append(Vp_Vs)
+            hl.append(self.Mod['Hl'][-1])  # add the half space layer
+            vp_vs.append(self.vp_vs[-1])  # vp/vs ratio for half space layer
+            # print(len(vp_vs), len(hl))
+            self.vp_vs = np.array(vp_vs)  # assign vp_vs back to self
+            self.Mod['Hl'] = hl  # assign layer thicknesses back to self
+        else:  # if there are no sub-layers
+            self.Mod['Hl'] = self.vel_profile['thickness']
 
-            self.Mod['Vs'] = model[:-1].tolist()
-            self.Mod['Vp'] = (self.Mod['Vs'] * self.vp_vs).tolist()
-            self.Mod['Dn'] = (calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000).tolist()
-            self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
-            self.Mod['Qp'] = self.Mod['Qs']
-            # print(self.Mod)
-            return None
-
+        self.Mod['Vs'] = model[:-1].tolist()
+        self.Mod['Vp'] = (self.Mod['Vs'] * self.vp_vs).tolist()
+        self.Mod['Dn'] = (calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000).tolist()
+        if q_model:
+            self.Mod['Qs'] = (((np.array(self.Mod['Vs']) / 100) ** 1.6) + 10).tolist()
         else:
-            for j, var in enumerate(model):  # assign vs values given in model to site
-                if j != len(model) - 1:
-                    self.Mod['Vs'][j] = var
-                    self.Mod['Qs'][j] = model[-1]
+            self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
+        self.Mod['Qp'] = self.Mod['Qs']
+        # print(self.Mod)
+        return None
 
-            vp = self.Mod['Vs'] * self.vp_vs   # use vp/vs to calculate Vp values such that physical properties are
-                                               # consistent in each layer
-            dn = calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000  # calculate density based on Vp
-            for j, var in enumerate(vp):  # assign values of vp and density to site
-                self.Mod['Vp'][j] = var  # vp values
-                self.Mod['Dn'][j] = dn[j]  # density values
+        # else:
+        #    for j, var in enumerate(model):  # assign vs values given in model to site
+        #        if j != len(model) - 1:
+        #            self.Mod['Vs'][j] = var
+        #            self.Mod['Qs'][j] = model[-1]
 
-            if self.litho:  # extra layer to consider - added half layer at base
-                for key in ['Vs', 'Vp', 'Dn']:
-                    self.Mod[key][-1] = self.Mod[key][-2]  # make sure half layer = layer above (Thompson, 2012)
+        #    vp = self.Mod['Vs'] * self.vp_vs   # use vp/vs to calculate Vp values such that physical properties are
+        #                                       # consistent in each layer
+        #    dn = calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000  # calculate density based on Vp
+        #    for j, var in enumerate(vp):  # assign values of vp and density to site
+        #        self.Mod['Vp'][j] = var  # vp values
+        #        self.Mod['Dn'][j] = dn[j]  # density values
+
+        #   if self.litho:  # extra layer to consider - added half layer at base
+        #       for key in ['Vs', 'Vp', 'Dn']:
+        #            self.Mod[key][-1] = self.Mod[key][-2]  # make sure half layer = layer above (Thompson, 2012)
 
             # perms = itertools.product([x for x in range(indexes)], repeat=dimensions)
 
             # for i, perm in enumerate(perms):
             #    model = pick_model(model_space, perm)
             # print(self.Mod)
-            return None
+        #    return None
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, i_ang=0,
                                   x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
@@ -417,7 +426,7 @@ class Sim1D(sc.Site, sm.Site1D):
             # loop over the model realisations picked at random and calculate misfit
             for i, model in enumerate(realisations):
                 # print(model)
-                self.modify_site_model(model, sub_layers=True)  # change the model in Valerio's SiteModel class
+                self.modify_site_model(model)  # change the model in Valerio's SiteModel class
                 # calculate misfit
                 _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                    fill_troughs_pct=fill_troughs_pct, i_ang=i_ang,
@@ -441,13 +450,13 @@ class Sim1D(sc.Site, sm.Site1D):
         if not save:
             return results
 
-    def reset_site_model(self):
+    def reset_site_model(self, custom_model=None):
         """
         Reset the model to the original site model.
         :return: None - inplace method
         """
         self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
-        self.__add_site_profile()
+        self.__add_site_profile(custom_model=custom_model)
         self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
 
     def read_post_sim_data(self, directory, run=0, its=5000, rtn=False):
