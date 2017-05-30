@@ -61,6 +61,8 @@ class Sim1D(sc.Site, sm.Site1D):
                 self.AddLayer([hl, vels['vp'][i], vels['vs'][i], vels['rho'][i], 100, 100])
             if self.litho:  # add final half layer
                 self.AddLayer([0, vels['vp'][-1], vels['vs'][-1], vels['rho'][-1], 100, 100])
+            if q_model:
+                self.modify_site_model(model=np.array(self.Mod['Vs'] + [None]), q_model=q_model)
         else:
             self.modify_site_model(model=custom_model, q_model=q_model)
 
