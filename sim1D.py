@@ -235,7 +235,7 @@ class Sim1D(sc.Site, sm.Site1D):
                     for n in range(subl_factor):
                         hl.append(Hl / subl_factor)
                         vp_vs.append(Vp_Vs)
-            hl.append(self.Mod['Hl'][-1])  # add the half space layer
+            hl.append(self.vel_profile['thickness'][-1])  # add the half space layer
             vp_vs.append(self.vp_vs[-1])  # vp/vs ratio for half space layer
             # print(len(vp_vs), len(hl))
             self.vp_vs = np.array(vp_vs)  # assign vp_vs back to self
