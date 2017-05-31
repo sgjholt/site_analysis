@@ -1,0 +1,46 @@
+import numpy as np
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+import random
+
+v_mod = np.array([100, 200, 600, 300, 900, 1700])
+scale = 1
+cor_co = 0.5
+dists = []
+
+for vel in v_mod:
+    a, b = -2, 2
+    pdf = stats.truncnorm(a, b, np.log(vel), scale=scale)
+    dists.append((pdf.rvs(1000) - np.log(vel)) / scale)
+
+# fig, ax = plt.subplots(2,3)
+
+# for i, dist in enumerate(dists):
+#    plt.subplot(2,3,i+1)
+#    plt.hist(dist, bins=200)
+#    plt.title('Layer ' + str(i+1))
+all_mods = []
+for _ in range(1000):
+    v_up, v_current = np.zeros(1), np.zeros(1)
+    rand_mod = []
+    for i, vels in enumerate(dists):
+        if i == 0:  # pick value for top layer
+            rand_mod.append(vels[random.randint(0, len(vels) - 1)])
+            v_up = rand_mod[0]
+        else:
+            b = vels[random.randint(0, len(vels) - 1)]
+            v_current = (cor_co * v_up) + b * (np.sqrt(1 - cor_co ** 2))
+            rand_mod.append(v_current)
+            v_up = v_current
+
+    rand_mod = np.exp((np.array(rand_mod) * scale) + np.log(v_mod))
+    all_mods.append(rand_mod)
+layers = [x + 1 for x in range(len(rand_mod))]
+
+plt.figure()
+plt.step(v_mod, layers, 'k')
+for rand_mod in all_mods:
+    plt.step(rand_mod, layers, 'r', linestyle='--')
+plt.xlabel('Velocity')
+plt.ylabel('Layer')
+plt.gca().invert_yaxis()

@@ -66,14 +66,13 @@ class Sim1D(sc.Site, sm.Site1D):
         else:
             self.modify_site_model(model=custom_model, q_model=q_model)
 
-
     def linear_forward_model_1d(self, i_ang=0, elastic=True, konno_ohmachi=None, motion='outcrop', log_sample=None,
                                 plot_on=False, show=False):
         """
 
         :param i_ang:
         :param elastic:
-        :param:konno_ohmachi:
+        :param konno_ohmachi:
         :param motion:
         :param log_sample:
         :param plot_on:
