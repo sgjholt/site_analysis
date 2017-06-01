@@ -164,8 +164,7 @@ class Sim1D(sc.Site, sm.Site1D):
         # freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
         # calc fwd model
         if log_sample is not None:  # must re-sample observed signal to match theoretical
-            log_freq = np.logspace(np.log(_freqs[0]), np.log(_freqs[-1]), log_sample[0], base=log_sample[1])
-            observed = sig_resample(log_freq, observed, _freqs)
+            observed = sig_resample(_freqs, observed, self.sb_ratio().columns.values.astype(float))
 
         log_residuals = (np.log(predicted) - observed)  # /std  # weighted by stdv
 
