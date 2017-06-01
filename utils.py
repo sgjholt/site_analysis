@@ -392,7 +392,7 @@ def sig_resample(log_freq, sb, freq):
     sb_log = np.zeros(len(log_freq))
 
     for i, current_log_freq in enumerate(log_freq):
-        print(current_log_freq)
+        # print(current_log_freq)
         # try:
         f_below = freq[freq <= current_log_freq][-1]
         f_above = freq[freq >= current_log_freq][0]
@@ -401,6 +401,7 @@ def sig_resample(log_freq, sb, freq):
         ind_above = np.where(freq >= current_log_freq)[0][0]
 
         sb_log[i] = sb[ind_below] + (current_log_freq - f_below) / (f_above - f_below) * (sb[ind_above] - sb[ind_below])
+        print(sb_log[i])
     return sb_log
 
 # sig[out[0]][[out[1]>sig[out[0]]]] = out[1][out[1]>sig[out[0]]]
