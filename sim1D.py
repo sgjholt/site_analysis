@@ -74,7 +74,7 @@ class Sim1D(sc.Site, sm.Site1D):
         :param elastic:
         :param konno_ohmachi:
         :param motion:
-        :param log_sample:
+        :param log_sample: tuple (no. samples, log_base), else: None : log sampling of predicted and observed
         :param plot_on:
         :param show:
         :return:
@@ -137,10 +137,10 @@ class Sim1D(sc.Site, sm.Site1D):
         :param cadet_correct: Apply the correction to SB ratio detailed in Cadet et al. (2012) - bool - True/False
         :param fill_troughs_pct: Fill the troughs of theoretical waveform to a percentage of peak amplitudes
         :param konno_ohmachi
-        :param log_sample
+        :param log_sample: tuple (no. samples, log_base), else: None
         :return: None: if plot_on == True: else: tuple (log_resids, log_misfit, x_cor):
         """
-        dt = 0.01  # time delta - ***TEMPORARY - NEEDS TO BE MORE FLEXIBLE ***
+
         # get the pandas table for sb site sb ratio
         predicted = self.linear_forward_model_1d(i_ang, elastic, motion=motion, konno_ohmachi=konno_ohmachi,
                                                  log_sample=log_sample)
@@ -156,7 +156,8 @@ class Sim1D(sc.Site, sm.Site1D):
         # freqs = (round(float(_freqs[0]), 2), round(float(_freqs[-1]), 2), len(_freqs))  # specify freqs for fwd model
         # calc fwd model
         if log_sample is not None:  # must re-sample observed signal to match theoretical
-            observed = sig_resample(_freqs, observed, self.sb_ratio().columns.values.astype(float))
+            log_freq = np.logspace(np.log(_freqs[0]), np.log(_freqs[-1]), log_sample[0], base=log_sample[1])
+            observed = sig_resample(log_freq, observed, _freqs)
 
         log_residuals = (np.log(predicted) - observed)  # /std  # weighted by stdv
 
@@ -175,7 +176,13 @@ class Sim1D(sc.Site, sm.Site1D):
         x_cor = np.correlate(x_cor_o / np.mean(x_cor_o), x_cor_p / np.mean(x_cor_p),
                              'full')  # do x_corr, store in memory - efficient for large sims
         max_xcor = x_cor.max()  # max value
-        x_cor = (x_cor.argmax() - (len(x_cor)-1)/2)*dt  # len -1 because the signal index begins counting at 0
+
+        if log_sample is None:
+            dt = 0.01  # time delta - ***TEMPORARY - NEEDS TO BE MORE FLEXIBLE ***
+            x_cor = (x_cor.argmax() - (len(x_cor) - 1) / 2) * dt  # len -1 because the signal index begins counting at 0
+        else:
+            pass  # TODO: cross-correlation not correct when log sampled (dt no longer accurate)
+
         # Calculate total misfit in both amplitude and frequency (fitting in both dimensions)
         # ***NO LONGER CALCULATED***
         # total_misfit = log_rms_misfit*weights[0] + exp_cdf(np.abs(x_cor), lam=lam)*weights[1]
@@ -304,6 +311,7 @@ class Sim1D(sc.Site, sm.Site1D):
         :param debug: bool: If true perform debugging actions. 
         :param motion:
         :param konno_ohmachi:
+        :param log_sample
         :return:
         """
         # -------------------------------------run 0-----------------------------------------------------#
