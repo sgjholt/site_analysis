@@ -373,6 +373,7 @@ class Sim1D(sc.Site, sm.Site1D):
         results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, 0]
         # loop over the model realisations picked at random and calculate misfit
         for i, model in enumerate(realisations):
+            # TODO: need to add option to change to vs/q relation
             self.modify_site_model(model)  # change the model in Valerio's SiteModel class
             # calculate misfit
             _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
@@ -395,9 +396,12 @@ class Sim1D(sc.Site, sm.Site1D):
 
         for n_layers in n_sub_layers:  # loop over sub-layer trials
             # SETUP START #
-            self.reset_site_model()  # reset to original profile
-            if const_q is not None:  # ensure Q is set correctly if constant
-                self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
+            self.reset_site_model()
+            if const_q is not None:
+                if not const_q:
+                    pass
+                else: # ensure Q is set correctly if constant
+                    self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
             # build the model space
             model_space, orig_sub = uniform_sub_model_space(self.Mod['Vs'], variation_pct=pct_variation, steps=steps,
                                                             n_sub_layers=n_layers, const_q=const_q)
