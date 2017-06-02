@@ -57,7 +57,10 @@ class Site:
             self.vel_file_dir = vel_file_dir
         if metadata_path is not None:
             self.metadata_path = metadata_path
-        self.metadata = parse_metadata(self.metadata_path, name)
+        try:
+            self.metadata = parse_metadata(self.metadata_path, name)
+        except (KeyError, IndexError):
+            self.metadata = None
         if self.get_velocity_profile() is None:
             self.has_vel_profile = False
         if arias_intensity_dir is not None:
