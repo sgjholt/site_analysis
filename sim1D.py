@@ -188,7 +188,9 @@ class Sim1D(sc.Site, sm.Site1D):
             dt = 0.01  # time delta - ***TEMPORARY - NEEDS TO BE MORE FLEXIBLE ***
             x_cor = (x_cor.argmax() - (len(x_cor) - 1) / 2) * dt  # len -1 because the signal index begins counting at 0
         else:
-            pass  # TODO: cross-correlation not correct when log sampled (dt no longer accurate)
+            log_space_dt = np.log(_freqs).max() / len(np.log(_freqs))
+            ln_f_lag = (np.linspace(np.log(1), len(x_cor), len(x_cor)) * log_space_dt - np.log(_freqs.max()))
+            x_cor = ln_f_lag[x_cor.argmax()]  # calculate lag using log_f since signal is log-sampled
 
         # Calculate total misfit in both amplitude and frequency (fitting in both dimensions)
         # ***NO LONGER CALCULATED***
@@ -220,7 +222,7 @@ class Sim1D(sc.Site, sm.Site1D):
             # self.plot_sb(stdv=(1,))
 
         else:
-            return log_residuals, log_rms_misfit, x_cor,  # total_misfit
+            return log_residuals, log_rms_misfit, x_cor, max_xcor
         if show:
             plt.show()
 
@@ -318,13 +320,15 @@ class Sim1D(sc.Site, sm.Site1D):
         :param debug: bool: If true perform debugging actions. 
         :param motion:
         :param konno_ohmachi:
-        :param log_sample
+        :param log_sample:
         :return:
         """
         # -------------------------------------run 0-----------------------------------------------------#
         # SETUP START #
         if const_q is not None:
             self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
+        else:
+            self.reset_site_model(q_model=True)
 
         self.simulation_path = self.run_dir + name
 
@@ -357,10 +361,10 @@ class Sim1D(sc.Site, sm.Site1D):
         # SETUP END #
 
         # run original model
-        _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                           fill_troughs_pct=fill_troughs_pct,
-                                           i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
-                                           konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+        _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                     fill_troughs_pct=fill_troughs_pct,
+                                                     i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                                     konno_ohmachi=konno_ohmachi, log_sample=log_sample)
         if debug:
             self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                         fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
@@ -370,22 +374,24 @@ class Sim1D(sc.Site, sm.Site1D):
                                                                            np.round(amp_mis, 3), 0,
                                                                            np.round(freq_mis, 3)))
         # store result in pandas data frame
-        results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, 0]
+        results.loc[0] = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, max_xcor, 0]
         # loop over the model realisations picked at random and calculate misfit
         for i, model in enumerate(realisations):
-            # TODO: need to add option to change to vs/q relation
-            self.modify_site_model(model)  # change the model in Valerio's SiteModel class
+            if const_q is None:  # i.e. we're using a qs/vs relation
+                self.modify_site_model(model, q_model=True)
+            else:
+                self.modify_site_model(model)
             # calculate misfit
-            _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                               fill_troughs_pct=fill_troughs_pct,
-                                               i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
-                                               konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+            _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                         fill_troughs_pct=fill_troughs_pct,
+                                                         i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                                         konno_ohmachi=konno_ohmachi, log_sample=log_sample)
             if debug:
                 self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                             fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
                             motion=motion, konno_ohmachi=konno_ohmachi, log_sample=log_sample)
             # store result in data frame
-            results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, 0]
+            results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, max_xcor, 0]
             print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3), 0,
                                                                                  np.round(freq_mis, 3)))
         if save:
@@ -398,10 +404,7 @@ class Sim1D(sc.Site, sm.Site1D):
             # SETUP START #
             self.reset_site_model()
             if const_q is not None:
-                if not const_q:
-                    pass
-                else: # ensure Q is set correctly if constant
-                    self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
+                self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
             # build the model space
             model_space, orig_sub = uniform_sub_model_space(self.Mod['Vs'], variation_pct=pct_variation, steps=steps,
                                                             n_sub_layers=n_layers, const_q=const_q)
@@ -426,29 +429,32 @@ class Sim1D(sc.Site, sm.Site1D):
                 columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
             results.index.name = 'trial'
             # SETUP END #
-            # run original model
-            _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                                               fill_troughs_pct=fill_troughs_pct,
-                                               i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
-                                               konno_ohmachi=konno_ohmachi, log_sample=log_sample)
-            if debug:
-                self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-                            fill_troughs_pct=fill_troughs_pct,
-                            i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion,
-                            konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+            # run original model ***DONT RUN ORIG MODEL FOR SUBLAYERS - NOT NECESSARY
+            # _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+            #                                   fill_troughs_pct=fill_troughs_pct,
+            #                                   i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+            #                                   konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+            # if debug:
+            #    self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+            #                fill_troughs_pct=fill_troughs_pct,
+            #                i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion,
+            #                konno_ohmachi=konno_ohmachi, log_sample=log_sample)
 
-            print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, orig_sub.tolist() + [
-                self.Mod['Qs'][0]],
-                                                                                 np.round(amp_mis, 3), n_layers,
-                                                                                 np.round(freq_mis, 3)))
+            # print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, orig_sub.tolist() + [
+            #    self.Mod['Qs'][0]],
+            #                                                                     np.round(amp_mis, 3), n_layers,
+            #                                                                     np.round(freq_mis, 3)))
             # store result in pandas data frame
-            results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, n_layers]
+            #results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, n_layers]
             # loop over the model realisations picked at random and calculate misfit
             for i, model in enumerate(realisations):
                 # print(model)
-                self.modify_site_model(model)  # change the model in Valerio's SiteModel class
+                if const_q is None:
+                    self.modify_site_model(model, q_model=True)
+                else:
+                    self.modify_site_model(model)  # change the model in Valerio's SiteModel class
                 # calculate misfit
-                _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                    fill_troughs_pct=fill_troughs_pct, i_ang=i_ang,
                                                    x_cor_range=x_cor_range, motion=motion, konno_ohmachi=konno_ohmachi,
                                                    log_sample=log_sample)
@@ -457,8 +463,8 @@ class Sim1D(sc.Site, sm.Site1D):
                                 fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
                                 motion=motion, konno_ohmachi=konno_ohmachi, log_sample=log_sample)
                 # store result in data frame
-                results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, n_layers]
-                print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3),
+                results.loc[i] = model.tolist() + [amp_mis, freq_mis, max_xcor, n_layers]
+                print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i, model, np.round(amp_mis, 3),
                                                                                      n_layers, np.round(freq_mis, 3)))
 
             if save:  # save the file as csv

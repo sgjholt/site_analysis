@@ -115,7 +115,7 @@ def uniform_model_space(original, variation_pct, steps, vs_only=False, const_q=N
             np.zeros(steps + 1) + const_q, 3)[None, :]))
     else:
         return np.concatenate((np.matrix.round(model_space, 0), np.matrix.round(
-            np.logspace(np.log10(100), np.log10(2), steps + 1, base=10), 2)[None, :]))
+            np.logspace(np.log10(100), np.log10(30), steps + 1, base=10), 2)[None, :]))
 
 
 def correlated_sub_model_space(original, variation_pct, cor_pct, steps, const_q=None):
@@ -230,7 +230,7 @@ def df_cols(dimensions, sub_layers=False):
     """
     cols = ['v{i:02d}'.format(i=num + 1) for num in range(dimensions - 1)]
     if sub_layers:
-        [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'n_sub_layers')]
+        [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'freq_power', 'n_sub_layers')]
     else:
         [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis')]
     return cols
