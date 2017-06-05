@@ -25,6 +25,7 @@ class Sim1D(sc.Site, sm.Site1D):
     simulation_path = ''
     sim_pars = {}
     sim_results = []
+    VLER = False
 
     def __init__(self, name, working_directory, run_dir=None, litho=False, vel_file_dir=None):
         """
@@ -43,6 +44,8 @@ class Sim1D(sc.Site, sm.Site1D):
             self.run_dir = run_dir
         if self.litho:
             self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
+        if name[:-2] == 'VLER':
+            self.VLER = True
 
     def __add_site_profile(self, custom_model=None, q_model=False):
         """
@@ -185,8 +188,14 @@ class Sim1D(sc.Site, sm.Site1D):
         max_xcor = x_cor.max()  # max value
 
         if log_sample is None:
-            dt = 0.01  # time delta - ***TEMPORARY - NEEDS TO BE MORE FLEXIBLE ***
-            x_cor = (x_cor.argmax() - (len(x_cor) - 1) / 2) * dt  # len -1 because the signal index begins counting at 0
+            if self.VLER is False:
+                dt = 0.01  # time delta - ***TEMPORARY - NEEDS TO BE MORE FLEXIBLE ***
+                x_cor = (x_cor.argmax() - (
+                len(x_cor) - 1) / 2) * dt  # len -1 because the signal index begins counting at 0
+            else:
+                log_space_dt = np.log(_freqs).max() / len(np.log(_freqs))
+                ln_f_lag = (np.linspace(np.log(1), len(x_cor), len(x_cor)) * log_space_dt - np.log(_freqs.max()))
+                x_cor = ln_f_lag[x_cor.argmax()]  # calculate lag using log_f since signal is log-sampled
         else:
             log_space_dt = np.log(_freqs).max() / len(np.log(_freqs))
             ln_f_lag = (np.linspace(np.log(1), len(x_cor), len(x_cor)) * log_space_dt - np.log(_freqs.max()))
