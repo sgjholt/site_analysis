@@ -126,7 +126,7 @@ def vel_model_range(site_obj, orig, thrsh=(), save=False, user='sgjholt', dpi=No
 
 def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False,
                        fill_troughs_pct=None, sub_layers=True, save=False, dpi=None, user='sgjholt', subplots=False,
-                       motion='outcrop', konno_ohmachi=None, legend=False):
+                       motion='outcrop', konno_ohmachi=None, q_model=False):
     orig_c = orig.apply(np.abs).copy(deep=True)
 
     orig_c.freq_mis = exp_cdf(orig_c.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
@@ -154,7 +154,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         subset = subset[subset.amp_mis <= subset.amp_mis.min()]
 
         model = subset.loc[subset.index[0]][0:-4].values
-        site_obj.modify_site_model(model, sub_layers=sub_layers)
+        site_obj.modify_site_model(model, q_model=q_model)
         if fill_troughs_pct is not None:
             plt.plot(_freqs, fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion,
                                                                            konno_ohmachi=konno_ohmachi),
@@ -174,7 +174,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         print('{0} models found'.format(len(subset)))
         for row in subset.iterrows():
             model = np.array([num[1] for num in row[1].iteritems()])
-            site_obj.modify_site_model(model[0:-4], sub_layers=sub_layers)
+            site_obj.modify_site_model(model[0:-4], q_model=q_model)
             if fill_troughs_pct is not None:
                 fwd = fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion,
                                                                     konno_ohmachi=konno_ohmachi),
