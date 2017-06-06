@@ -153,7 +153,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         subset = orig_c[orig_c.freq_mis <= orig_c.freq_mis.min()]
         subset = subset[subset.amp_mis <= subset.amp_mis.min()]
 
-        model = subset.loc[subset.index[0]][0:-3].values
+        model = subset.loc[subset.index[0]][0:-4].values
         site_obj.modify_site_model(model, sub_layers=sub_layers)
         if fill_troughs_pct is not None:
             plt.plot(_freqs, fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion,
@@ -174,7 +174,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         print('{0} models found'.format(len(subset)))
         for row in subset.iterrows():
             model = np.array([num[1] for num in row[1].iteritems()])
-            site_obj.modify_site_model(model[0:-3], sub_layers=sub_layers)
+            site_obj.modify_site_model(model[0:-4], sub_layers=sub_layers)
             if fill_troughs_pct is not None:
                 fwd = fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion,
                                                                     konno_ohmachi=konno_ohmachi),
