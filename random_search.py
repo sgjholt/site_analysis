@@ -78,6 +78,9 @@ def sub_uniform_search(*args):
             f.write("{0} = {1}".format(title, vrs[i]))
             f.write('\n')
 
+    if type(const_q) is str:
+        const_q = None
+
     site = sd.Sim1D(site, working_directory=wd, run_dir=rd)
 
     site.uniform_sub_random_search(pct_variation=pct, steps=steps, iterations=iters, name=name,
