@@ -504,11 +504,11 @@ class Sim1D(sc.Site, sm.Site1D):
         :return: 
         """
         directory = '/data/share/Japan/SiteInfo/S_B/' + directory
-        self.sim_pars = parse_simulation_cfg(glob.glob(directory+'*{1}_run_{0}*.cfg'.format(run, its))[0])
-        try:
+        try:  # try and find the desired post-sim data files
+            self.sim_pars = parse_simulation_cfg(glob.glob(directory + '*{1}_run_{0}*.cfg'.format(run, its))[0])
             self.sim_results = [pd.read_csv(df, index_col=0) for df in
                                 sorted(glob.glob(directory + '*{1}_run_{0}*.csv'.format(run, its)))]
-        except IndexError:
+        except IndexError:  # except that user may have not used the correct no of iterations or run number
             print('Found 0 tables.')
         print('Found {0} tables.'.format(len(self.sim_results)))
         if rtn:
