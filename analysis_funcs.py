@@ -125,8 +125,27 @@ def vel_model_range(site_obj, orig, thrsh=(), save=False, user='sgjholt', dpi=No
 
 
 def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, cadet_correct=False,
-                       fill_troughs_pct=None, sub_layers=True, save=False, dpi=None, user='sgjholt', subplots=False,
+                       fill_troughs_pct=None, save=False, dpi=None, user='sgjholt', subplots=False,
                        motion='outcrop', konno_ohmachi=None, q_model=False):
+    """
+
+    :param site_obj:
+    :param orig: pandas DataFrame object containing the simulation results.
+    :param minimum:
+    :param thrsh:
+    :param elastic:
+    :param cadet_correct:
+    :param fill_troughs_pct:
+    :param sub_layers:
+    :param save:
+    :param dpi:
+    :param user:
+    :param subplots:
+    :param motion:
+    :param konno_ohmachi:
+    :param q_model:
+    :return:
+    """
     orig_c = orig.apply(np.abs).copy(deep=True)
 
     orig_c.freq_mis = exp_cdf(orig_c.freq_mis.apply(np.abs), 1)  # apply normalisation (f-lag)
