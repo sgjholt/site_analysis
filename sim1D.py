@@ -25,6 +25,7 @@ class Sim1D(sc.Site, sm.Site1D):
     simulation_path = ''
     sim_pars = {}
     sim_results = []
+    orig_model_stats = {}
     VLER = False
 
     def __init__(self, name, working_directory, run_dir=None, litho=False, vel_file_dir=None):
@@ -438,23 +439,26 @@ class Sim1D(sc.Site, sm.Site1D):
                 columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
             results.index.name = 'trial'
             # SETUP END #
-            # run original model ***DONT RUN ORIG MODEL FOR SUBLAYERS - NOT NECESSARY
-            # _, amp_mis, freq_mis = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
-            #                                   fill_troughs_pct=fill_troughs_pct,
-            #                                   i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
-            #                                   konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+            # run original model
+            if const_q is None:
+                self.modify_site_model(np.append(orig_sub, np.array([1])), q_model=True)
+
+            _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                         fill_troughs_pct=fill_troughs_pct,
+                                                         i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                                         konno_ohmachi=konno_ohmachi, log_sample=log_sample)
             # if debug:
             #    self.misfit(elastic=elastic, cadet_correct=cadet_correct,
             #                fill_troughs_pct=fill_troughs_pct,
             #                i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True, motion=motion,
             #                konno_ohmachi=konno_ohmachi, log_sample=log_sample)
 
-            # print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, orig_sub.tolist() + [
-            #    self.Mod['Qs'][0]],
-            #                                                                     np.round(amp_mis, 3), n_layers,
-            #                                                                     np.round(freq_mis, 3)))
+            print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, orig_sub.tolist() + [
+                self.Mod['Qs'][0]],
+                                                                                 np.round(amp_mis, 3), n_layers,
+                                                                                 np.round(freq_mis, 3)))
             # store result in pandas data frame
-            #results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, n_layers]
+            results.loc[0] = orig_sub.tolist() + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, max_xcor, n_layers]
             # loop over the model realisations picked at random and calculate misfit
             for i, model in enumerate(realisations):
                 # print(model)
@@ -508,8 +512,10 @@ class Sim1D(sc.Site, sm.Site1D):
             self.sim_pars = parse_simulation_cfg(glob.glob(directory + '*{1}_run_{0}*.cfg'.format(run, its))[0])
             self.sim_results = [pd.read_csv(df, index_col=0) for df in
                                 sorted(glob.glob(directory + '*{1}_run_{0}*.csv'.format(run, its)))]
+            self.orig_model_stats = dict(self.sim_results[0].loc[0])
         except IndexError:  # except that user may have not used the correct no of iterations or run number
             print('Found 0 tables.')
         print('Found {0} tables.'.format(len(self.sim_results)))
+
         if rtn:
             return self.sim_results
