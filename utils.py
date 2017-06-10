@@ -414,7 +414,7 @@ def calcFAS(eqDict):
     # sig.tukey is a cosine taper defined in the scipy.signal package
     # ... current taper = 5% where 0% is a square window
     FAS = np.abs(np.fft.rfft(np.pad(
-        eqDict['data'] * eqDict['SF'], 1000, 'constant') * sig.tukey(
+        eqDict['data'] * eqDict['SF'], 1000, 'constant') * sg.tukey(
         np.pad(eqDict['data'] * eqDict['SF'], 1000, 'constant').size, 0.05)))
     freq = np.fft.rfftfreq(len(np.pad(
         eqDict['data'] * eqDict['SF'], 1000, 'constant')), eqDict['dt'])
