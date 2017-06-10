@@ -12,15 +12,15 @@ freqs = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5, 6,
                   16, 17, 18, 19, 20, 21, 22, 23, 24, 25])
 cols = ['path', 'site', 'jmamag', 'Repi', 'Rhypo', 'eq_depth', 'Vs30', 'srf_pga', 'bh_pga', 'amp']
 
-pga_df = dict(zip(cols, [db[title].values for title in cols[:-3]]+[srf_pga, bh_pga, srf_pga/bh_pga]))
-pga_df = pd.DataFrame.from_dict(pga_df)
-pga_df.to_csv(sd+'PGA.csv')
+# pga_df = dict(zip(cols, [db[title].values for title in cols[:-3]]+[srf_pga, bh_pga, srf_pga/bh_pga]))
+# pga_df = pd.DataFrame.from_dict(pga_df)
+# pga_df.to_csv(sd+'PGA.csv')
 
 FAS_dbs = []
 for f in freqs:
     FAS_dbs.append(pd.DataFrame(columns=cols))
 
-for j, item in enumerate(zip(db['path'], db['site'], db['magnitude'], db['Repi'], db['Rhyp'], db['eq_depth'],
+for j, item in enumerate(zip(db['path'], db['site'], db['jmamag'], db['Repi'], db['Rhypo'], db['eq_depth'],
                                  db['Vs30'])):
     FAS, _ = interp_smooth(item[0], sb=False, freqs=freqs)
     for i, _ in enumerate(freqs):
