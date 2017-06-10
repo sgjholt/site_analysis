@@ -21,7 +21,9 @@ if __name__ == "__main__":
     for f in freqs:
         FAS_dicts.append(dict(zip(dat_cols, [[], [], []])))
 
-    for j, path in enumerate(db['path'].values[0:10]):
+    for j, path in enumerate(db['path'].values[:10]):
+        if (((j+1)*100)/len(db)) % 5 == 0:
+            print('-------{0}% completion------'.format((((j+1)*100)/len(db))))
         skip = False
         try:
             FAS, _ = interp_smooth(path, sb=False, freqs=freqs)
@@ -29,16 +31,17 @@ if __name__ == "__main__":
             skip = True
         if skip:
             print('Error in filepath: '+path)
-            pass
+            for i, _ in enumerate(freqs):
+                FAS_dicts[i]["srf_FAS"].append(999.0)
+                FAS_dicts[i]["bh_FAS"].append(999.0)
+                FAS_dicts[i]["amp"].append(999.0)
 
         else:
             for i, _ in enumerate(freqs):
                 FAS_dicts[i]["srf_FAS"].append(FAS[0][i])
                 FAS_dicts[i]["bh_FAS"].append(FAS[1][i])
                 FAS_dicts[i]["amp"].append(FAS[0][i]/FAS[1][i])
-        if (((j+1)*100)/len(db)) % 5 == 0:
-            print('-------{0}% completion------'.format((((j+1)*100)/len(db))))
 
     for i, f in enumerate(freqs):
-        pd.DataFrame.from_dict({**dict(zip(meta_cols, [db[title].values for title in meta_cols])),
-                                **FAS_dicts[i]}).to_csv(sd+'FAS_{0}HZ.csv'.format(freqs[i]))
+        pd.DataFrame.from_dict({**dict(zip(meta_cols, [db[title].values[:10] for title in meta_cols])),
+                                **FAS_dicts[i]}).to_csv(sd+'FAS_{0}HZ.csv'.format(f))
