@@ -419,18 +419,18 @@ def calcFAS(eqDict):
     freq = np.fft.rfftfreq(len(np.pad(
         eqDict['data'] * eqDict['SF'], 1000, 'constant')), eqDict['dt'])
 
-    parsevalsCheck(eqDict, FAS)
+    # parsevalsCheck(eqDict, FAS)
 
     eqDict.update({'FAS': FAS, 'FASfreqs': freq})
-    print('Added FAS/FAS-freqs to eq dictionary object.')
+    # print('Added FAS/FAS-freqs to eq dictionary object.')
 
 
 def parsevalsCheck(eqDict,FAS):
     t = np.sum((eqDict["data"]*eqDict["SF"])**2)
     f = np.sum(FAS**2/FAS.size)
     if abs(t-f) >= 0.01*t:
-        print('Parseval Check: WARNING - energy difference is >= 1%.')
-        print('Energy difference = {0}%'.format((abs(t-f)/t))*100)
+        #vprint('Parseval Check: WARNING - energy difference is >= 1%.')
+        #vprint('Energy difference = {0}%'.format((abs(t-f)/t))*100)
     else:
         print('Parseval Check: energy is conserved.')
 

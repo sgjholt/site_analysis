@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from utils import interp_smooth
 
+
 sd = '/data/share/Japan/SiteInfo/non_lin/'
 db = pd.read_csv('/data/share/Japan/Kik_catalogue.csv', index_col=0)
 srf_pga = db.query("instrument=='Surface'").pga.values
@@ -19,20 +20,16 @@ FAS_dbs = []
 for f in freqs:
     FAS_dbs.append(pd.DataFrame(columns=cols))
 
-
-def main():
-
-    global db
-    global freqs
-    global FAS_dbs
-    global sd
-
-    for j, item in enumerate(zip(db['path'], db['site'], db['magnitude'], db['Repi'], db['Rhyp'], db['eq_depth'],
+for j, item in enumerate(zip(db['path'], db['site'], db['magnitude'], db['Repi'], db['Rhyp'], db['eq_depth'],
                                  db['Vs30'])):
-        FAS, _ = interp_smooth(item[0], sb=False, freqs=freqs)
-        for i, _ in enumerate(freqs):
-            FAS_dbs[i].loc[j] = [thing for thing in item]+[FAS[0][i], FAS[1][i], FAS[0][i]/FAS[1][i]]
+    FAS, _ = interp_smooth(item[0], sb=False, freqs=freqs)
+    for i, _ in enumerate(freqs):
+        FAS_dbs[i].loc[j] = [thing for thing in item]+[FAS[0][i], FAS[1][i], FAS[0][i]/FAS[1][i]]
+    if (((j+1)*100)/len(db)) % 5 == 0:
+        print('-------{0}% completion------'.format((((j+1)*100)/len(db))))
 
-    for i, df in enumerate(FAS_dbs):
-        FAS_dbs[i].to_csv(sd+'FAS_{0}HZ.csv'.format(freqs[i]))
+for i, df in enumerate(FAS_dbs):
+    FAS_dbs[i].to_csv(sd+'FAS_{0}HZ.csv'.format(freqs[i]))
+
+
 
