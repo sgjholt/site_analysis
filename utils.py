@@ -443,7 +443,10 @@ def interp_smooth(path, singlecomp=False, ext=None, maxF=25, dt=1 / 100, sb=True
         exts = [".EW2.gz", ".NS2.gz", ".EW1.gz", ".NS1.gz"]
         wfms = [readKiknet(path + f) for f in exts]
         [calcFAS(wf) for wf in wfms]
-        srf, bh = (wfms[0]['FAS'] * wfms[1]['FAS']) ** 0.5, (wfms[2]['FAS'] * wfms[3]['FAS']) ** 0.5
+        try:
+            srf, bh = (wfms[0]['FAS'] * wfms[1]['FAS']) ** 0.5, (wfms[2]['FAS'] * wfms[3]['FAS']) ** 0.5
+        except ValueError:
+            return None
     else:  # calc for only the specified component
         exts = [ext + "2.gz", ext + "1.gz"]
         wfms = [readKiknet(path + f) for f in exts]
