@@ -21,7 +21,7 @@ if __name__ == "__main__":
     for f in freqs:
         FAS_dicts.append(dict(zip(dat_cols, [[], [], []])))
 
-    for j, path in enumerate(db['path'].values[:10]):
+    for j, path in enumerate(db['path'].values):
         if (((j+1)*100)/len(db)) % 5 == 0:
             print('-------{0}% completion------'.format((((j+1)*100)/len(db))))
         skip = False
@@ -43,5 +43,5 @@ if __name__ == "__main__":
                 FAS_dicts[i]["amp"].append(FAS[0][i]/FAS[1][i])
 
     for i, f in enumerate(freqs):
-        pd.DataFrame.from_dict({**dict(zip(meta_cols, [db[title].values[:10] for title in meta_cols])),
+        pd.DataFrame.from_dict({**dict(zip(meta_cols, [db[title].values for title in meta_cols])),
                                 **FAS_dicts[i]}).to_csv(sd+'FAS_{0}HZ.csv'.format(f))
