@@ -6,7 +6,7 @@ import pandas as pd
 import scipy.signal as sg
 from find_peaks import detect_peaks
 from parsers import readKiknet
-
+from obspy.signal.konnoohmachismoothing import konno_ohmachi_smoothing
 
 def rand_sites(sample_size):
     sites = sorted(pd.read_csv('/data/share/Japan/Kik_catalogue.csv', index_col=0).site.unique())
@@ -405,3 +405,59 @@ def sig_resample(log_freq, sb, freq):
     return sb_log
 
 # sig[out[0]][[out[1]>sig[out[0]]]] = out[1][out[1]>sig[out[0]]]
+
+
+def calcFAS(eqDict):
+    # np.fft.rfft function takes the postive side of the frequency spectrum only
+    # energy is conserved between time/freq domains
+
+    # sig.tukey is a cosine taper defined in the scipy.signal package
+    # ... current taper = 5% where 0% is a square window
+    FAS = np.abs(np.fft.rfft(np.pad(
+        eqDict['data'] * eqDict['SF'], 1000, 'constant') * sig.tukey(
+        np.pad(eqDict['data'] * eqDict['SF'], 1000, 'constant').size, 0.05)))
+    freq = np.fft.rfftfreq(len(np.pad(
+        eqDict['data'] * eqDict['SF'], 1000, 'constant')), eqDict['dt'])
+
+    parsevalsCheck(eqDict, FAS)
+
+    eqDict.update({'FAS': FAS, 'FASfreqs': freq})
+    print('Added FAS/FAS-freqs to eq dictionary object.')
+
+
+def parsevalsCheck(eqDict,FAS):
+    t = np.sum((eqDict["data"]*eqDict["SF"])**2)
+    f = np.sum(FAS**2/FAS.size)
+    if abs(t-f) >= 0.01*t:
+        print('Parseval Check: WARNING - energy difference is >= 1%.')
+        print('Energy difference = {0}%'.format((abs(t-f)/t))*100)
+    else:
+        print('Parseval Check: energy is conserved.')
+
+
+def interp_smooth(path, singlecomp=False, ext=None, maxF=25, dt=1 / 100, sb=True, freqs=None):
+    """
+
+    """
+    if not singlecomp:  # take geometric mean of everything
+        exts = [".EW2.gz", ".NS2.gz", ".EW1.gz", ".NS1.gz"]
+        wfms = [readKiknet(path + f) for f in exts]
+        [calcFAS(wf) for wf in wfms]
+        srf, bh = (wfms[0]['FAS'] * wfms[1]['FAS']) ** 0.5, (wfms[2]['FAS'] * wfms[3]['FAS']) ** 0.5
+    else:  # calc for only the specified component
+        exts = [ext + "2.gz", ext + "1.gz"]
+        wfms = [readKiknet(path + f) for f in exts]
+        [calcFAS(wf) for wf in wfms]
+        srf, bh = wfms[0]['FAS'] / wfms[1]['FAS']
+    if freqs is None:
+        freqs = np.linspace(0 + dt, maxF + dt, maxF / dt)[9:]  # start counting from 0.1Hz
+    if sb:
+        s_b = np.interp(freqs, wfms[0]['FASfreqs'], srf/bh)
+        s_b = konno_ohmachi_smoothing(s_b, freqs, normalize=True)
+        return s_b, freqs
+    else:
+        srf, bh = konno_ohmachi_smoothing(np.interp(freqs, wfms[0]['FASfreqs'], srf), freqs, normalize=True), \
+                  konno_ohmachi_smoothing(np.interp(freqs, wfms[0]['FASfreqs'], bh), freqs, normalize=True)
+
+        return (srf, bh), freqs
+
