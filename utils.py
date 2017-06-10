@@ -429,8 +429,8 @@ def parsevalsCheck(eqDict,FAS):
     t = np.sum((eqDict["data"]*eqDict["SF"])**2)
     f = np.sum(FAS**2/FAS.size)
     if abs(t-f) >= 0.01*t:
-        #vprint('Parseval Check: WARNING - energy difference is >= 1%.')
-        #vprint('Energy difference = {0}%'.format((abs(t-f)/t))*100)
+        print('Parseval Check: WARNING - energy difference is >= 1%.')
+        print('Energy difference = {0}%'.format((abs(t-f)/t))*100)
     else:
         print('Parseval Check: energy is conserved.')
 
