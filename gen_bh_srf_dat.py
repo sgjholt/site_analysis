@@ -27,7 +27,7 @@ if __name__ == "__main__":
         skip = False
         try:
             FAS, _ = interp_smooth(path, sb=False, freqs=freqs)
-        except (ValueError, IndexError):
+        except (ValueError, IndexError, TypeError):
             skip = True
         if skip:
             print('Error in filepath: '+path)
