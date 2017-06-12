@@ -476,8 +476,8 @@ class Sim1D(sc.Site, sm.Site1D):
                                 fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
                                 motion=motion, konno_ohmachi=konno_ohmachi, log_sample=log_sample)
                 # store result in data frame
-                results.loc[i] = model.tolist() + [amp_mis, freq_mis, max_xcor, n_layers]
-                print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i, model, np.round(amp_mis, 3),
+                results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, max_xcor, n_layers]
+                print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3),
                                                                                      n_layers, np.round(freq_mis, 3)))
 
             if save:  # save the file as csv
