@@ -54,7 +54,7 @@ def main():
         print('name changed to: {0}'.format(name))
 
     sub_uniform_search(site, wd, rd, 50, 10, iterations, name, 0, (0, 25), None, False, False, None,
-                       (1, 5, 10,), motion, konno_ohmachi)
+                       (1, 5, 9), motion, konno_ohmachi)
 
 
 def sub_uniform_search(*args):
