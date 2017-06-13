@@ -13,7 +13,7 @@ import site_class as sc
 import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, \
-    uniform_sub_model_space, sig_resample
+    uniform_sub_model_space, sig_resample, rectangular_vs_space, rectangular_space_thickness_calculator, dict_cols
 from parsers import parse_simulation_cfg
 # import itertools
 
@@ -248,6 +248,11 @@ class Sim1D(sc.Site, sm.Site1D):
         #  self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
         #  case 0 - 'Hl' has not been changed to represent sublayer thicknesses - not the correct length
         #  must change Thicknesses, Density, Vp, Vs, Qp an Qs
+        # TODO: calc thicknesses and appropriate vp/vs values for density model when using rect_model_space
+        # TODO: make new function to assign vp/vs ratio at given depth
+        # TODO: modify this function to allow rect_model_space thickness allocation
+
+
         if len(self.vel_profile['thickness']) != (len(model) - 1):  # if it has sub-layering - calc new layer thicks
             print('Calculating new layer thicknesses for given sub-layers')
             subl_factor = int((len(model) - 1) / (len(self.vel_profile['thickness']) - 1))
@@ -279,7 +284,6 @@ class Sim1D(sc.Site, sm.Site1D):
             self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
         self.Mod['Qp'] = self.Mod['Qs']
         # print(self.Mod)
-        return None
 
         # else:
         #    for j, var in enumerate(model):  # assign vs values given in model to site
@@ -488,6 +492,73 @@ class Sim1D(sc.Site, sm.Site1D):
                 all_results.append(results)
         if not save:
             return results
+
+    def rect_space_search(self, low, high, steps, iterations, name, i_ang=0, spacing=2, force_min_spacing=True,
+                          x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
+                          fill_troughs_pct=None, save=False, debug=False,
+                          motion='outcrop', konno_ohmachi=None, log_sample=None):
+
+        self.simulation_path = self.run_dir + name
+
+        self.model_space = rectangular_vs_space(low, high, steps, self.vel_profile['thickness'].tolist(), spacing,
+                                                force_min_spacing)  # build the model space
+
+        dimensions, indexes = self.model_space.shape
+
+        random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))
+
+        realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
+        for i, row in enumerate(random_choices):
+            realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
+
+        results = pd.DataFrame(
+            columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
+        results.index.name = 'trial'
+
+        # SETUP END #
+
+        # run original model
+        _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                     fill_troughs_pct=fill_troughs_pct,
+                                                     i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                                     konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+        if debug:
+            self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                        fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
+                        motion=motion, konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+        print(
+            "Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]],
+                                                                           np.round(amp_mis, 3), 0,
+                                                                           np.round(freq_mis, 3)))
+        # store result in pandas data frame
+        vals = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, max_xcor, 0]
+        results = results.append(dict_cols(len(self.Mod['Vs']), vals), ignore_index=True)
+
+        for i, model in enumerate(realisations):
+            if const_q is None:  # i.e. we're using a qs/vs relation
+                self.modify_site_model(model, q_model=True, rect_space=True)
+            else:
+                self.modify_site_model(model, rect_space=True)
+            # calculate misfit
+            _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                         fill_troughs_pct=fill_troughs_pct,
+                                                         i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                                         konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+            if debug:
+                self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                            fill_troughs_pct=fill_troughs_pct, i_ang=i_ang, x_cor_range=x_cor_range, plot_on=True,
+                            motion=motion, konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+            # store result in data frame
+            results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, max_xcor, 0]
+            print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3), 0,
+                                                                                 np.round(freq_mis, 3)))
+        if save:
+            results.to_csv(self.simulation_path + 'n_sub_' + str(0) + '.csv')
+        else:
+            all_results.append(results)
+
+
+
 
     def reset_site_model(self, custom_model=None, q_model=False):
         """

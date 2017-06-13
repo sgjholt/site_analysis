@@ -1,6 +1,7 @@
 import random
 import contextlib
 import os
+import collections
 import numpy as np
 import pandas as pd
 import scipy.signal as sg
@@ -196,6 +197,62 @@ def uniform_sub_model_space(original, variation_pct, steps, n_sub_layers, const_
     return sbms, orig_sub
 
 
+def rectangular_vs_space(low, high, steps, hl_profile, spacing=2, force_min_spacing=True, log_spacing=True):
+    """
+
+    :param low:
+    :param high:
+    :param steps:
+    :param hl_profile:
+    :param spacing:
+    :param force_min_spacing:
+    :return:
+    """
+    min_thick = min(hl_profile)
+    if force_min_spacing:
+        if min_thick > spacing:
+            spacing = min_thick
+
+    num_layers = int(sum(hl_profile[:-1]) / spacing) + 1  # +1 for half-space layer
+
+    rect_space = np.zeros((num_layers, steps + 1))
+
+    for i in range(num_layers):
+        if log_spacing:
+            rect_space[i] = np.logspace(np.log10(low), np.log10(high), steps + 1)
+        else:
+            rect_space[i] = np.linspace(low, high, steps + 1)
+
+    # rect_space = np.round(rect_space, 2)
+
+    return np.concatenate([rect_space, np.logspace(np.log10(100), np.log10(30), steps + 1, base=10)[None, :]])
+
+
+def rectangular_space_thickness_calculator(hl_profile, spacing=2, force_min_spacing=True):
+    """
+
+    :param hl_profile:
+    :param spacing:
+    :param force_min_spacing:
+    :return:
+    """
+    min_thick = min(hl_profile)
+    if force_min_spacing:
+        if min_thick > spacing:
+            spacing = min_thick
+
+    total_thick = sum(hl_profile[:-1])  # work out total thickness
+
+    num_layers = total_thick / spacing
+
+    hl = [spacing for _ in range(int(num_layers))] + [0]  # half-space thickness
+
+    if total_thick % spacing != 0:  # if spacing is not divisible for total thickness add difference to last layer
+        hl[-2] += (total_thick - int(total_thick))
+
+    return hl
+
+
 def search_lvl(model):
     """
     Search model and identify increasing velocity transitions with 1 and negative (lvl transition) with -1.
@@ -234,6 +291,13 @@ def df_cols(dimensions, sub_layers=False):
     else:
         [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis')]
     return cols
+
+
+def dict_cols(dimensions, vals):
+    cols = ['v{i:02d}'.format(i=num + 1) for num in range(dimensions - 1)]
+    [cols.append(title) for title in ('qs', 'amp_mis', 'freq_mis', 'freq_power', 'n_sub_layers')]
+
+    return dict(zip(cols, vals))
 
 
 def dest_freq(bh_depth, prof):
