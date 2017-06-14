@@ -120,7 +120,7 @@ def rect_space_search(*args):
         const_q = None
     site = sd.Sim1D(site, working_directory=wd, run_dir=rd)
 
-    site.rect_space_search(*args[3:])
+    site.rect_space_search(args[3], args[4], args[5], args[6], args[7], save=True, log_sample=args[-1])
 
 if __name__ == '__main__':
     start_time = time.time()
