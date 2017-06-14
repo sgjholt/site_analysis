@@ -60,7 +60,7 @@ def main():
                            (1, 5, 9), motion, konno_ohmachi)
     else:
         rect_space_search(site, wd, rd, 70, 3500, 20, iterations, name, 0, 2, (0, 25), None, False, False, None,
-                          True, False, motion, konno_ohmachi, (250, np.exp(1)))
+                          True, False, motion, None, (250, np.exp(1)))
 
 
 def sub_uniform_search(*args):
