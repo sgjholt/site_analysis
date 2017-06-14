@@ -517,6 +517,8 @@ class Sim1D(sc.Site, sm.Site1D):
                           fill_troughs_pct=None, save=False, debug=False,
                           motion='outcrop', konno_ohmachi=None, log_sample=None):
 
+        all_results = []
+
         if const_q is not None:
             self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
         else:
@@ -580,7 +582,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if save:
             results.to_csv(self.simulation_path + 'n_sub_' + str(0) + '.csv')
         else:
-            all_results.append(results)
+            return results
 
 
 
