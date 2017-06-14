@@ -96,9 +96,10 @@ def sub_uniform_search(*args):
 
 
 def rect_space_search(*args):
-    site, rd, wd, name = args[0:4]
+    site, rd, wd, = args[0:3]
+    name = args[7]
 
-    titles = ['site', 'data_dir', 'write_dir', 'name', 'low', 'high', 'model_steps', 'iterations',
+    titles = ['site', 'data_dir', 'write_dir', 'low', 'high', 'model_steps', 'iterations', 'name'
               'i_ang', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct', 'fill_troughs', 'save', 'debug',
               'motion', 'konno_ohmachi_smoothing(b)', 'log_spacing-base']
 
