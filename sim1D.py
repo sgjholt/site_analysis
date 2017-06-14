@@ -513,7 +513,7 @@ class Sim1D(sc.Site, sm.Site1D):
             return results
 
     def rect_space_search(self, low, high, steps, iterations, name, i_ang=0, spacing=2, force_min_spacing=True,
-                          x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
+                          x_cor_range=(0, 25), const_q=None, elastic=True, cadet_correct=False,
                           fill_troughs_pct=None, save=False, debug=False,
                           motion='outcrop', konno_ohmachi=None, log_sample=None):
 

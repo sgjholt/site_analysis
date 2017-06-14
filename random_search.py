@@ -10,6 +10,7 @@ import time
 import datetime
 import os
 import sys
+import numpy as np
 import sim1D as sd
 
 __author__ = 'James Holt'
@@ -32,11 +33,13 @@ def main():
     try:
         motion = str(sys.argv[3])
         konno_ohmachi = int(sys.argv[4])
+        rect_uni = str(sys.argv[5])
     except IndexError:
         motion = 'outcrop'
         konno_ohmachi = None
+        rect_uni = 'uniform'
 
-    name = site + '_rnd_ufm_' + '_' + str(iterations) + '_run_0_'
+    name = site + '_' + rect_uni + '_' + str(iterations) + '_run_0_'
     wd = '/data/share/Japan/SiteInfo/S_B/VLER10_blind/'
     # rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl_{1}_smooth-{2}/'.format(site, motion, konno_ohmachi)
     rd = '/data/share/Japan/SiteInfo/S_B/VLER10_blind/'
@@ -52,9 +55,12 @@ def main():
             j += 1  # if the file already exists, give it another name
             name = name.replace('run_0', 'run_{0}'.format(j))
         print('name changed to: {0}'.format(name))
-
-    sub_uniform_search(site, wd, rd, 50, 10, iterations, name, 0, (0, 25), None, False, False, None,
-                       (1, 5, 9), motion, konno_ohmachi)
+    if rect_uni == 'uniform':
+        sub_uniform_search(site, wd, rd, 50, 10, iterations, name, 0, (0, 25), None, False, False, None,
+                           (1, 5, 9), motion, konno_ohmachi)
+    else:
+        rect_space_search(site, wd, rd, 70, 3500, 20, iterations, name, 0, 2, (0, 25), None, False, False, None,
+                          True, False, motion, konno_ohmachi, (250, np.exp(1)))
 
 
 def sub_uniform_search(*args):
@@ -88,6 +94,31 @@ def sub_uniform_search(*args):
                                    cadet_correct=cadet_correct, fill_troughs_pct=fill_troughs, save=True,
                                    n_sub_layers=n_sub_layers, motion=motion, konno_ohmachi=konno_ohmachi)
 
+
+def rect_space_search(*args):
+    site, rd, wd, name = args[0:4]
+
+    titles = ['site', 'data_dir', 'write_dir', 'name', 'low', 'high', 'model_steps', 'iterations',
+              'i_ang', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct', 'fill_troughs', 'save', 'debug',
+              'motion', 'konno_ohmachi_smoothing(b)', 'log_spacing-base']
+
+    const_q = args[9]
+    if const_q is None:
+        const_q = 'Valerio-ETH-model'
+
+    with open(rd + name + '.cfg', 'wt') as f:
+        f.write('config file for {0}'.format(name).upper())
+        f.write('\n')
+        f.write('\n')
+        for i, var in enumerate(args):
+            f.write("{0} = {1}".format(titles[i], var))
+            f.write('\n')
+
+    if type(const_q) is str:
+        const_q = None
+    site = sd.Sim1D(site, working_directory=wd, run_dir=rd)
+
+    site.rect_space_search(*args)
 
 if __name__ == '__main__':
     start_time = time.time()
