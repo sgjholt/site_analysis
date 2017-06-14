@@ -100,8 +100,9 @@ def rect_space_search(*args):
     name = args[7]
 
     titles = ['site', 'data_dir', 'write_dir', 'low', 'high', 'model_steps', 'iterations', 'name'
-              'i_ang', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct', 'fill_troughs', 'save', 'debug',
-              'motion', 'konno_ohmachi_smoothing(b)', 'log_spacing-base']
+                                                                                           'i_ang', 'spacing[m]',
+              'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct', 'fill_troughs', 'save',
+              'debug', 'motion', 'konno_ohmachi_smoothing(b)', 'log_spacing-base']
 
     const_q = args[9]
     if const_q is None:
