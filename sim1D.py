@@ -272,13 +272,6 @@ class Sim1D(sc.Site, sm.Site1D):
                 self.vp_vs = tmp_vpvs
                 self.Mod['Hl'] = self.rect_hl
 
-            self.Mod['Vs'] = model[:-1].tolist()
-            self.Mod['Vp'] = (np.array(self.Mod['Vs']) * self.vp_vs).tolist()
-            self.Mod['Dn'] = (calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000).tolist()
-
-
-
-
         if len(self.vel_profile['thickness']) != (len(model) - 1):  # if it has sub-layering - calc new layer thicks
             print('Calculating new layer thicknesses for given sub-layers')
             subl_factor = int((len(model) - 1) / (len(self.vel_profile['thickness']) - 1))
