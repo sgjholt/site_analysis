@@ -59,7 +59,7 @@ def main():
         sub_uniform_search(site, wd, rd, 50, 10, iterations, name, 0, (0, 25), None, False, False, None,
                            (1, 5, 9), motion, konno_ohmachi)
     else:
-        rect_space_search(site, wd, rd, 70, 3500, 20, iterations, name, 0, 2, (0, 25), None, False, False, None,
+        rect_space_search(site, wd, rd, 70, 3500, 20, iterations, name, 0, 2, True, (0, 25), None, False, False, None,
                           True, False, motion, None, (250, np.exp(1)))
 
 
@@ -100,7 +100,8 @@ def rect_space_search(*args):
     name = args[7]
 
     titles = ['site', 'data_dir', 'write_dir', 'low', 'high', 'model_steps', 'iterations', 'name',
-              'i_ang', 'spacing[m]', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct', 'fill_troughs', 'save',
+              'i_ang', 'spacing[m]', 'force_min_spacing', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct',
+              'fill_troughs', 'save',
               'debug', 'motion', 'konno_ohmachi_smoothing(b)', 'log_spacing-base']
 
     const_q = args[9]
