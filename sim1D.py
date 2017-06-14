@@ -265,34 +265,34 @@ class Sim1D(sc.Site, sm.Site1D):
                 empty_vpvs = np.zeros(len(tmp_hl_prof))
                 for i in range(len(tmp_site_hl)):
                     if i == 0:
-                        empty_vpvs[np.where(tmp_hl_prof <= tmp_site_hl[i])[0]] = tmp_vpvs[i]
+                        empty_vpvs[np.where(tmp_hl_prof < tmp_site_hl[i])] = tmp_vpvs[i]
                     else:
-                        empty_vpvs[np.where((tmp_hl_prof <= tmp_site_hl[i]) & (tmp_hl_prof > tmp_site_hl[i - 1]))[0]] = \
-                        tmp_vpvs[i]
-                self.vp_vs = tmp_vpvs
+                        empty_vpvs[np.where((tmp_hl_prof < tmp_site_hl[i]) & (tmp_hl_prof >= tmp_site_hl[i - 1]))] = \
+                            tmp_vpvs[i]
+                self.vp_vs = empty_vpvs
                 self.Mod['Hl'] = self.rect_hl
-
-        if len(self.vel_profile['thickness']) != (len(model) - 1):  # if it has sub-layering - calc new layer thicks
-            print('Calculating new layer thicknesses for given sub-layers')
-            subl_factor = int((len(model) - 1) / (len(self.vel_profile['thickness']) - 1))
-            # print(subl_factor)  # how many sub-layers were used
-            # # hl = np.zeros(len(model)-1)
-            hl = []
-            # # vp_vs = np.zeros(len(model)-1)
-            vp_vs = []
-            for i, zipped in enumerate(zip(self.vel_profile['thickness'], self.vp_vs)):
-                if i < len(self.vel_profile['thickness']) - 1:
-                    Hl, Vp_Vs = zipped
-                    for n in range(subl_factor):
-                        hl.append(Hl / subl_factor)
-                        vp_vs.append(Vp_Vs)
-            hl.append(self.vel_profile['thickness'][-1])  # add the half space layer
-            vp_vs.append(self.vp_vs[-1])  # vp/vs ratio for half space layer
-            # print(len(vp_vs), len(hl))
-            self.vp_vs = np.array(vp_vs)  # assign vp_vs back to self
-            self.Mod['Hl'] = hl  # assign layer thicknesses back to self
-        else:  # if there are no sub-layers
-            self.Mod['Hl'] = self.vel_profile['thickness']
+        else:
+            if len(self.vel_profile['thickness']) != (len(model) - 1):  # if it has sub-layering - calc new layer thicks
+                print('Calculating new layer thicknesses for given sub-layers')
+                subl_factor = int((len(model) - 1) / (len(self.vel_profile['thickness']) - 1))
+                # print(subl_factor)  # how many sub-layers were used
+                # # hl = np.zeros(len(model)-1)
+                hl = []
+                # # vp_vs = np.zeros(len(model)-1)
+                vp_vs = []
+                for i, zipped in enumerate(zip(self.vel_profile['thickness'], self.vp_vs)):
+                    if i < len(self.vel_profile['thickness']) - 1:
+                        Hl, Vp_Vs = zipped
+                        for n in range(subl_factor):
+                            hl.append(Hl / subl_factor)
+                            vp_vs.append(Vp_Vs)
+                hl.append(self.vel_profile['thickness'][-1])  # add the half space layer
+                vp_vs.append(self.vp_vs[-1])  # vp/vs ratio for half space layer
+                # print(len(vp_vs), len(hl))
+                self.vp_vs = np.array(vp_vs)  # assign vp_vs back to self
+                self.Mod['Hl'] = hl  # assign layer thicknesses back to self
+            else:  # if there are no sub-layers
+                self.Mod['Hl'] = self.vel_profile['thickness']
 
         self.Mod['Vs'] = model[:-1].tolist()
         self.Mod['Vp'] = (self.Mod['Vs'] * self.vp_vs).tolist()
@@ -516,6 +516,12 @@ class Sim1D(sc.Site, sm.Site1D):
                           x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
                           fill_troughs_pct=None, save=False, debug=False,
                           motion='outcrop', konno_ohmachi=None, log_sample=None):
+
+        if const_q is not None:
+            self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
+        else:
+            self.reset_site_model(q_model=True)
+
 
         self.simulation_path = self.run_dir + name
 
