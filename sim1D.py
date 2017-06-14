@@ -26,6 +26,7 @@ class Sim1D(sc.Site, sm.Site1D):
     sim_pars = {}
     sim_results = []
     orig_model_stats = {}
+    rect_hl = None
     VLER = False
 
     def __init__(self, name, working_directory, run_dir=None, litho=False, vel_file_dir=None):
@@ -236,7 +237,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def modify_site_model(self, model, q_model=False):
+    def modify_site_model(self, model, q_model=False, rect_space=False):
         """
         This function will modify the site model based on a specified Vs profile plus Qs value (model[-1])
 
@@ -251,6 +252,31 @@ class Sim1D(sc.Site, sm.Site1D):
         # TODO: calc thicknesses and appropriate vp/vs values for density model when using rect_model_space
         # TODO: make new function to assign vp/vs ratio at given depth
         # TODO: modify this function to allow rect_model_space thickness allocation
+        if rect_space:
+            hl_vpvs_calc = False
+            if self.rect_hl is not None:
+                hl_vpvs_calc = True
+
+            if not hl_vpvs_calc:
+                self.rect_hl = rectangular_space_thickness_calculator(self.vel_profile['thickness'])
+                tmp_hl_prof = np.cumsum(self.rect_hl)
+                tmp_site_hl = self.vel_profile['depth']
+                tmp_vpvs = self.vp_vs
+                empty_vpvs = np.zeros(len(tmp_hl_prof))
+                for i in range(len(tmp_site_hl)):
+                    if i == 0:
+                        empty_vpvs[np.where(tmp_hl_prof <= tmp_site_hl[i])[0]] = tmp_vpvs[i]
+                    else:
+                        empty_vpvs[np.where((tmp_hl_prof <= tmp_site_hl[i]) & (tmp_hl_prof > tmp_site_hl[i - 1]))[0]] = \
+                        tmp_vpvs[i]
+                self.vp_vs = tmp_vpvs
+                self.Mod['Hl'] = self.rect_hl
+
+            self.Mod['Vs'] = model[:-1].tolist()
+            self.Mod['Vp'] = (np.array(self.Mod['Vs']) * self.vp_vs).tolist()
+            self.Mod['Dn'] = (calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000).tolist()
+
+
 
 
         if len(self.vel_profile['thickness']) != (len(model) - 1):  # if it has sub-layering - calc new layer thicks
