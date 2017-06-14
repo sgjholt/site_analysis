@@ -559,7 +559,7 @@ class Sim1D(sc.Site, sm.Site1D):
                                                                            np.round(freq_mis, 3)))
         # store result in pandas data frame
         vals = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, max_xcor, 0]
-        results = results.append(dict_cols(len(self.Mod['Vs']), vals), ignore_index=True)
+        results = results.append(dict_cols(dimensions, vals), ignore_index=True)
 
         for i, model in enumerate(realisations):
             if const_q is None:  # i.e. we're using a qs/vs relation
@@ -583,9 +583,6 @@ class Sim1D(sc.Site, sm.Site1D):
             results.to_csv(self.simulation_path + 'n_sub_' + str(0) + '.csv')
         else:
             return results
-
-
-
 
     def reset_site_model(self, custom_model=None, q_model=False):
         """
