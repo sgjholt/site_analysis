@@ -96,7 +96,7 @@ def sub_uniform_search(*args):
 
 
 def rect_space_search(*args):
-    site, rd, wd, = args[0:3]
+    site, wd, rd, = args[0:3]
     name = args[7]
 
     titles = ['site', 'data_dir', 'write_dir', 'low', 'high', 'model_steps', 'iterations', 'name',
@@ -119,7 +119,7 @@ def rect_space_search(*args):
         const_q = None
     site = sd.Sim1D(site, working_directory=wd, run_dir=rd)
 
-    site.rect_space_search(*args)
+    site.rect_space_search(*args[3:])
 
 if __name__ == '__main__':
     start_time = time.time()
