@@ -580,7 +580,7 @@ class Sim1D(sc.Site, sm.Site1D):
             print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3), 0,
                                                                                  np.round(freq_mis, 3)))
         if save:
-            results.to_csv(self.simulation_path + 'n_sub_' + str(0) + '.csv')
+            results.to_csv(self.simulation_path + '.csv')
         else:
             return results
 
