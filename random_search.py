@@ -120,8 +120,7 @@ def rect_space_search(*args):
         const_q = None
     site = sd.Sim1D(site, working_directory=wd, run_dir=rd)
 
-    site.rect_space_search(low=70, high=3500, steps=20, iterations=10, name=name, save=True,
-                           log_sample=(250, np.exp(1)))
+    site.rect_space_search(low=70, high=3500, steps=20, iterations=10, elastic=False, name=name, save=True)
 
 if __name__ == '__main__':
     start_time = time.time()
