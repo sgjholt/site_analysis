@@ -210,7 +210,7 @@ def rectangular_vs_space(low, high, steps, hl_profile, spacing=2, force_min_spac
     """
     min_thick = min(hl_profile)
     if force_min_spacing:
-        if min_thick > spacing:
+        if min_thick < spacing:
             spacing = min_thick
 
     num_layers = int(sum(hl_profile[:-1]) / spacing) + 1  # +1 for half-space layer
@@ -238,7 +238,7 @@ def rectangular_space_thickness_calculator(hl_profile, spacing=2, force_min_spac
     """
     min_thick = min(hl_profile)
     if force_min_spacing:
-        if min_thick > spacing:
+        if min_thick < spacing:
             spacing = min_thick
 
     total_thick = sum(hl_profile[:-1])  # work out total thickness
