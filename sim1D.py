@@ -594,7 +594,7 @@ class Sim1D(sc.Site, sm.Site1D):
         self.vp_vs = np.array(self.Mod['Vp']) / np.array(self.Mod['Vs'])
         self.rect_hl = None
 
-    def read_post_sim_data(self, directory, run=0, its=5000, rtn=False):
+    def read_post_sim_data(self, directory, space='uniform', run=0, its=5000, rtn=False):
         """
         
         :param directory: 
@@ -603,9 +603,14 @@ class Sim1D(sc.Site, sm.Site1D):
         :param rtn: 
         :return: 
         """
+
+        if space == 'uniform':
+            space = 'rnd_ufm_'
+
         directory = '/data/share/Japan/SiteInfo/S_B/' + directory
         try:  # try and find the desired post-sim data files
-            self.sim_pars = parse_simulation_cfg(glob.glob(directory + '*{1}_run_{0}*.cfg'.format(run, its))[0])
+            self.sim_pars = parse_simulation_cfg(
+                glob.glob(directory + '*{2}_{1}_run_{0}*.cfg'.format(run, its, space))[0])
             self.sim_results = [pd.read_csv(df, index_col=0) for df in
                                 sorted(glob.glob(directory + '*{1}_run_{0}*.csv'.format(run, its)))]
             self.orig_model_stats = dict(self.sim_results[0].loc[0])
