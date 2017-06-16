@@ -248,7 +248,7 @@ def rectangular_space_thickness_calculator(hl_profile, spacing=2, force_min_spac
     hl = [spacing for _ in range(int(num_layers))] + [0]  # half-space thickness
 
     if total_thick % spacing != 0:  # if spacing is not divisible for total thickness add difference to last layer
-        hl[-2] += (total_thick - int(total_thick))
+        hl[-2] += (num_layers - int(num_layers)) * spacing
 
     return hl
 
