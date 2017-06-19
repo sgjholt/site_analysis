@@ -528,3 +528,27 @@ def interp_smooth(path, singlecomp=False, ext=None, maxF=25, dt=1 / 100, sb=True
 
         return (srf, bh), freqs
 
+
+def kamai_vsZ(coeff_file, depths, vs30, region='japan'):
+    """
+
+    :param coeff_file:
+    :param depths:
+    :param vs30:
+    :param region:
+    :return:
+    """
+    coeff_file = np.loadtxt(coeff_file, delimiter=',', skiprows=0)  # coefficients for VsZ model
+    if region is 'japan':
+        coeff_file = coeff_file[:, 1]
+    else:  # region is california
+        coeff_file = coeff_file[:, 2]
+
+    a0 = coeff_file[0] * vs30 + coeff_file[1]
+    a1 = coeff_file[2] * vs30 + coeff_file[3]
+    a2 = coeff_file[4] * np.exp(coeff_file[5] * vs30)
+
+    std_vs = coeff_file[6] * vs30 + coeff_file[7]  # natural log units
+    vs_med = a0 + a1 * (np.log((depths + a2) / a2))
+
+    return vs_med, std_vs

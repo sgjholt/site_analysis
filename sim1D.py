@@ -615,7 +615,7 @@ class Sim1D(sc.Site, sm.Site1D):
                                 sorted(glob.glob(directory + '*{1}_run_{0}*.csv'.format(run, its)))]
             self.orig_model_stats = dict(self.sim_results[0].loc[0])
         except IndexError:  # except that user may have not used the correct no of iterations or run number
-            print('Found 0 tables.')
+            pass
         print('Found {0} tables.'.format(len(self.sim_results)))
 
         if rtn:
