@@ -529,12 +529,11 @@ def interp_smooth(path, singlecomp=False, ext=None, maxF=25, dt=1 / 100, sb=True
         return (srf, bh), freqs
 
 
-def kamai_vsZ(coeff_file, depths, vs30, region='japan'):
+def kamai_vsz(depths, vs30, coeff_file='/data/share/Japan/SiteInfo/kamai16_vs_model_coeffs.csv', region='japan'):
     """
-
-    :param coeff_file:
     :param depths:
     :param vs30:
+    :param coeff_file:
     :param region:
     :return:
     """
