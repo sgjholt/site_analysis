@@ -548,6 +548,8 @@ def kamai_vsz(depths, vs30, coeff_file='/data/share/Japan/SiteInfo/kamai16_vs_mo
     a2 = coeff_file[4] * np.exp(coeff_file[5] * vs30)
 
     std_vs = coeff_file[6] * vs30 + coeff_file[7]  # natural log units
-    vs_med = a0 + a1 * (np.log((depths + a2) / a2))
 
-    return vs_med, std_vs
+    vs_med = np.log(a0 + a1 * (np.log((depths + a2) / a2)))
+    low, high = vs_med - std_vs, vs_med + std_vs
+
+    return np.exp(vs_med), (np.exp(low), np.exp(high))
