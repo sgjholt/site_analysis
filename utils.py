@@ -537,7 +537,7 @@ def kamai_vsz(depths, vs30, coeff_file='/data/share/Japan/SiteInfo/kamai16_vs_mo
     :param region:
     :return:
     """
-    coeff_file = np.loadtxt(coeff_file, delimiter=',', skiprows=1)  # coefficients for VsZ model
+    coeff_file = np.loadtxt(coeff_file, delimiter=',', skiprows=1, usecols=[1, 2])  # coefficients for VsZ model
     if region is 'japan':
         coeff_file = coeff_file[:, 1]
     else:  # region is california
