@@ -2,54 +2,84 @@ import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 import random
+import copy
 import seaborn as sb
 
-v_mod = np.array([100, 200, 600, 300, 900, 1700, 1700])
+# v_mod = np.array([100, 200, 600, 300, 900, 1700, 1700])
+v_mod = np.linspace(100, 2000, 21)
+v_mod = np.append(v_mod, v_mod[-1])
 scale = 1  # ln units for std
-cor_co = 0.5
-count = 1000
-dists = np.zeros((v_mod.size, count))
-
-for i, vel in enumerate(v_mod):
-    a, b = np.max(np.array([(np.log(30) - np.log(vel)) / scale, -2])), np.min(
-        np.array([(np.log(5000) - np.log(vel)) / scale, 2]))
-    pdf = stats.truncnorm(a, b, np.log(vel), scale=scale)
-    dists[i] = (pdf.rvs(count) - np.log(vel)) / scale
-
-# fig, ax = plt.subplots(2, 3)
-
-# for i, dist in enumerate(dists):
-#    plt.subplot(2, 3, i+1)
-#    plt.hist(dist, bins=200)
-#    plt.title('Layer ' + str(i+1))
+cor_co = 0.9
+count = 100
 
 
-for i, c_layer in enumerate(dists[1:]):
-    all_replaced = False
-    tmp = (cor_co * dists[i]) + c_layer * (np.sqrt(1 - cor_co ** 2))
-    while not all_replaced:
-        locs = np.where((tmp <= np.log(75)) & (tmp <= np.log(5000)))
-        replace = (pdf.rvs(len(locs[0])) - np.log(v_mod[i + 1])) / scale
-        tmp[locs] = (cor_co * dists[i][locs]) + c_layer[locs] * (np.sqrt(1 - cor_co ** 2))
-    dists[i + 1] = tmp
-    #  dists[i + 1] = (cor_co * dists[i]) + c_layer * (np.sqrt(1 - cor_co ** 2))
+def cor_v_space(v_mod, count, lower_v=75, upper_v=4000, cor_co=0.5, scale=1, plot=False, repeat_layers=False,
+                repeat_chance=0.25):
+    dists = np.zeros((v_mod.size, count))
 
+    for i, vel in enumerate(v_mod):
+        a, b = np.max(np.array([(np.log(lower_v) - np.log(vel)) / scale, -2])), np.min(
+            np.array([(np.log(upper_v) - np.log(vel)) / scale, 2]))
+        pdf = stats.truncnorm(a, b, np.log(vel), scale=scale)
+        dists[i] = (pdf.rvs(count) - np.log(vel)) / scale
 
-layers = [x + 0.5 for x in range(len(v_mod))]
-plt.figure()
-plt.step(v_mod, layers, 'k')
-counter = 0
-for model in np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1)).T:
-    plt.step(model, layers, 'r', linestyle='--')
-    counter += 1
-    if counter > count:
-        break
-plt.xlabel('Velocity')
-plt.ylabel('Layer')
-plt.ylim([0.5, 6.5])
-plt.gca().invert_yaxis()
+    for i, c_layer in enumerate(dists[1:]):
 
+        all_replaced = False
 
+        if repeat_layers:  # TODO: fix the repeat layers problem - for some reason can't repeat layer from above
+            # TODO: double checked formula for conversion - seems okay
+            # TODO: think problem might be that values are modified inside the while loop if they're <=75 or >=4000
+            tmp = copy.deepcopy(c_layer)
+            lucky_draw = np.where(np.random.random(count) <= repeat_chance)
+            tmp[lucky_draw] = tmp[lucky_draw] + (np.log(v_mod[i]) - np.log(v_mod[i + 1]))
+            inds = np.arange(0, count)
+            others = np.array(list(set(inds) - set(lucky_draw[0])))
+            print(others)
+            if len(others) > 0:
+                tmp[others] = (cor_co * dists[i][others]) + c_layer[others] * (np.sqrt(1 - cor_co ** 2))
+            else:
+                pass
+        else:
+            tmp = (cor_co * dists[i]) + c_layer * (np.sqrt(1 - cor_co ** 2))
+
+        counter = 0
+        while not all_replaced:
+            counter += 1
+            locs = np.where(((tmp * scale) + np.log(v_mod[i + 1]) <= np.log(lower_v)) | (
+            (tmp * scale) + np.log(v_mod[i + 1]) >= np.log(upper_v)))
+            print(i, len(locs[0]), np.exp(tmp[locs] + np.log(v_mod[i + 1])))
+            if len(locs[0]) == 0:
+                all_replaced = True
+            else:
+                if counter < 1000:
+                    replace = (pdf.rvs(len(locs[0])) - np.log(v_mod[i + 1])) / scale
+                    tmp[locs] = (cor_co * dists[i][locs]) + replace * (np.sqrt(1 - cor_co ** 2))
+                else:
+                    # TODO: in order to stop never ending loop assign upper or lower limit after 1000 trials if cannot
+                    # TODO: successfully pick a value in the acceptable region .
+                    tmp[locs] = np.min(np.abs((tmp[locs] * scale + np.log(v_mod[i + 1])) - np.log(upper_v)),
+                                       np.abs((tmp[locs] * scale + np.log(v_mod[i + 1])) - np.log(lower_v)))
+
+        dists[i + 1] = tmp
+        #  dists[i + 1] = (cor_co * dists[i]) + c_layer * (np.sqrt(1 - cor_co ** 2))
+    if plot:
+        layers = [x + 0.5 for x in range(len(v_mod))]
+        plt.figure()
+        plt.step(v_mod, layers, 'k')
+        counter = 0
+        for model in np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1)).T:
+            plt.step(model, layers, 'r', linestyle='--')
+            counter += 1
+            if counter > count:
+                break
+        plt.xlabel('Velocity')
+        plt.ylabel('Layer')
+        plt.ylim([0.5, len(v_mod) + 0.5])
+        plt.gca().invert_yaxis()
+
+    else:
+        return np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1)).T
 
 
 all_mods = []
