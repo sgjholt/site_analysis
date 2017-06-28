@@ -15,6 +15,19 @@ count = 100
 
 def cor_v_space(v_mod, count, lower_v=75, upper_v=4000, cor_co=0.5, scale=1, plot=False, repeat_layers=False,
                 repeat_chance=0.25):
+    """
+
+    :param v_mod:
+    :param count:
+    :param lower_v:
+    :param upper_v:
+    :param cor_co:
+    :param scale:
+    :param plot:
+    :param repeat_layers:
+    :param repeat_chance:
+    :return:
+    """
     dists = np.zeros((v_mod.size, count))
 
     for i, vel in enumerate(v_mod):
@@ -27,12 +40,10 @@ def cor_v_space(v_mod, count, lower_v=75, upper_v=4000, cor_co=0.5, scale=1, plo
 
         all_replaced = False
 
-        if repeat_layers:  # TODO: fix the repeat layers problem - for some reason can't repeat layer from above
-            # TODO: double checked formula for conversion - seems okay
-            # TODO: think problem might be that values are modified inside the while loop if they're <=75 or >=4000
+        if repeat_layers:
             tmp = copy.deepcopy(c_layer)
             lucky_draw = np.where(np.random.random(count) <= repeat_chance)
-            tmp[lucky_draw] = tmp[lucky_draw] + (np.log(v_mod[i]) - np.log(v_mod[i + 1]))
+            tmp[lucky_draw] = dists[i][lucky_draw] + (np.log(v_mod[i]) - np.log(v_mod[i + 1]))
             inds = np.arange(0, count)
             others = np.array(list(set(inds) - set(lucky_draw[0])))
             print(others)
@@ -47,7 +58,7 @@ def cor_v_space(v_mod, count, lower_v=75, upper_v=4000, cor_co=0.5, scale=1, plo
         while not all_replaced:
             counter += 1
             locs = np.where(((tmp * scale) + np.log(v_mod[i + 1]) <= np.log(lower_v)) | (
-            (tmp * scale) + np.log(v_mod[i + 1]) >= np.log(upper_v)))
+                (tmp * scale) + np.log(v_mod[i + 1]) > np.log(upper_v)))
             print(i, len(locs[0]), np.exp(tmp[locs] + np.log(v_mod[i + 1])))
             if len(locs[0]) == 0:
                 all_replaced = True
@@ -55,11 +66,9 @@ def cor_v_space(v_mod, count, lower_v=75, upper_v=4000, cor_co=0.5, scale=1, plo
                 if counter < 1000:
                     replace = (pdf.rvs(len(locs[0])) - np.log(v_mod[i + 1])) / scale
                     tmp[locs] = (cor_co * dists[i][locs]) + replace * (np.sqrt(1 - cor_co ** 2))
-                else:
-                    # TODO: in order to stop never ending loop assign upper or lower limit after 1000 trials if cannot
-                    # TODO: successfully pick a value in the acceptable region .
-                    tmp[locs] = np.min(np.abs((tmp[locs] * scale + np.log(v_mod[i + 1])) - np.log(upper_v)),
-                                       np.abs((tmp[locs] * scale + np.log(v_mod[i + 1])) - np.log(lower_v)))
+                else:  # protects against getting stuck upper limit -
+                    # usually only a problem if user wants high/unity correlation.
+                    tmp[locs] = (np.log(upper_v) - np.log(v_mod[i + 1])) / scale
 
         dists[i + 1] = tmp
         #  dists[i + 1] = (cor_co * dists[i]) + c_layer * (np.sqrt(1 - cor_co ** 2))

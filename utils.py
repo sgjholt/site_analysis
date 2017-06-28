@@ -1,13 +1,16 @@
 import random
 import contextlib
 import os
-import collections
+import copy
 import numpy as np
 import pandas as pd
 import scipy.signal as sg
+import scipy.stats as stats
+import matplotlib.pyplot as plt
 from find_peaks import detect_peaks
 from parsers import readKiknet
 from obspy.signal.konnoohmachismoothing import konno_ohmachi_smoothing
+
 
 def rand_sites(sample_size):
     sites = sorted(pd.read_csv('/data/share/Japan/Kik_catalogue.csv', index_col=0).site.unique())
@@ -553,3 +556,102 @@ def kamai_vsz(depths, vs30, coeff_file='/data/share/Japan/SiteInfo/kamai16_vs_mo
     low, high = vs_med - std_vs, vs_med + std_vs
 
     return np.exp(vs_med), (np.exp(low), np.exp(high))
+
+
+def cor_v_space(v_mod, hl_profile, count, lower_v=75, upper_v=4000, cor_co=0.5, scale=1, plot=False,
+                repeat_layers=False,
+                repeat_chance=0.25, spacing=2, force_min_spacing=True):
+    """
+
+    :param v_mod: Initial velocity model.
+    :param hl_profile: Initial thickness profile.
+    :param count: Number of desired models.
+    :param lower_v: Lower Vs limit (m/s).
+    :param upper_v: Upper Vs limit (m/s).
+    :param cor_co: Correlation coefficient (rho) between layers.
+    :param scale: Standard Deviation (sigma) in ln units.
+    :param plot: Visualise resultant model space.
+    :param repeat_layers: Allow chance for Vs to carry over into next layer.
+    :param repeat_chance: Probability of repetition (0-1).
+    :param spacing:
+    :param force_min_spacing:
+    :return:
+    """
+
+    # new_hl_profile = np.insert(np.cumsum(rectangular_space_thickness_calculator(hl_profile))[:-1], 0, np.zeros(1))
+    new_hl_profile = np.insert(np.cumsum(rectangular_space_thickness_calculator(
+        hl_profile, spacing, force_min_spacing))[:-1], 0, np.zeros(1))
+    depth = np.cumsum(hl_profile)
+    mod = np.zeros(len(new_hl_profile))
+
+    for i in range(len(depth)):
+        if i == 0:
+            mod[np.where(new_hl_profile < depth[i])] = v_mod[i]
+        else:
+            mod[np.where((new_hl_profile < depth[i]) & (new_hl_profile >= depth[i - 1]))] = \
+                v_mod[i]
+    mod[-1] = v_mod[-1]
+
+    v_mod = mod
+
+    dists = np.zeros((v_mod.size, count))
+
+    for i, vel in enumerate(v_mod):
+        a, b = np.max(np.array([(np.log(lower_v) - np.log(vel)) / scale, -2])), np.min(
+            np.array([(np.log(upper_v) - np.log(vel)) / scale, 2]))
+        pdf = stats.truncnorm(a, b, np.log(vel), scale=scale)
+        dists[i] = (pdf.rvs(count) - np.log(vel)) / scale
+
+    for i, c_layer in enumerate(dists[1:]):
+
+        all_replaced = False
+
+        if repeat_layers:
+            tmp = copy.deepcopy(c_layer)
+            lucky_draw = np.where(np.random.random(count) <= repeat_chance)
+            tmp[lucky_draw] = ((dists[i][lucky_draw] * scale) + (np.log(v_mod[i]) - np.log(v_mod[i + 1]))) / scale
+            inds = np.arange(0, count)
+            others = np.array(list(set(inds) - set(lucky_draw[0])))
+            print(others)
+            if len(others) > 0:
+                tmp[others] = (cor_co * dists[i][others]) + c_layer[others] * (np.sqrt(1 - cor_co ** 2))
+            else:
+                pass
+        else:
+            tmp = (cor_co * dists[i]) + c_layer * (np.sqrt(1 - cor_co ** 2))
+
+        counter = 0
+        while not all_replaced:
+            counter += 1
+            locs = np.where(((tmp * scale) + np.log(v_mod[i + 1]) <= np.log(lower_v)) | (
+                (tmp * scale) + np.log(v_mod[i + 1]) > np.log(upper_v)))
+            print(i, len(locs[0]), np.exp(tmp[locs] + np.log(v_mod[i + 1])))
+            if len(locs[0]) == 0:
+                all_replaced = True
+            else:
+                if counter < 1000:
+                    replace = (pdf.rvs(len(locs[0])) - np.log(v_mod[i + 1])) / scale
+                    tmp[locs] = (cor_co * dists[i][locs]) + replace * (np.sqrt(1 - cor_co ** 2))
+                else:  # protects against getting stuck upper limit -
+                    # usually only a problem if user wants high/unity correlation.
+                    tmp[locs] = (np.log(upper_v) - np.log(v_mod[i + 1])) / scale
+
+        dists[i + 1] = tmp
+        #  dists[i + 1] = (cor_co * dists[i]) + c_layer * (np.sqrt(1 - cor_co ** 2))
+    if plot:
+        layers = [x + 0.5 for x in range(len(v_mod))]
+        plt.figure()
+        plt.step(v_mod, layers, 'k')
+        counter = 0
+        for model in np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1)).T:
+            plt.step(model, layers, 'r', linestyle='--')
+            counter += 1
+            if counter > count:
+                break
+        plt.xlabel('Velocity')
+        plt.ylabel('Layer')
+        plt.ylim([0.5, len(v_mod) + 0.5])
+        plt.gca().invert_yaxis()
+
+    else:
+        return np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1)).T

@@ -249,9 +249,7 @@ class Sim1D(sc.Site, sm.Site1D):
         #  self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
         #  case 0 - 'Hl' has not been changed to represent sublayer thicknesses - not the correct length
         #  must change Thicknesses, Density, Vp, Vs, Qp an Qs
-        # TODO: calc thicknesses and appropriate vp/vs values for density model when using rect_model_space
-        # TODO: make new function to assign vp/vs ratio at given depth
-        # TODO: modify this function to allow rect_model_space thickness allocation
+
         if rect_space:
             hl_vpvs_calc = False
             if self.rect_hl is not None:
@@ -259,7 +257,7 @@ class Sim1D(sc.Site, sm.Site1D):
 
             if not hl_vpvs_calc:
                 self.rect_hl = rectangular_space_thickness_calculator(self.vel_profile['thickness'])
-                tmp_hl_prof = np.cumsum(self.rect_hl)
+                tmp_hl_prof = np.insert(np.cumsum(self.rect_hl)[:-1], 0, np.zeros(1))
                 tmp_site_hl = self.vel_profile['depth']
                 tmp_vpvs = self.vp_vs
                 empty_vpvs = np.zeros(len(tmp_hl_prof))
@@ -269,6 +267,7 @@ class Sim1D(sc.Site, sm.Site1D):
                     else:
                         empty_vpvs[np.where((tmp_hl_prof < tmp_site_hl[i]) & (tmp_hl_prof >= tmp_site_hl[i - 1]))] = \
                             tmp_vpvs[i]
+                empty_vpvs[-1] = tmp_vpvs[-1]  # assign half layer vp/vs
                 self.vp_vs = empty_vpvs
                 self.Mod['Hl'] = self.rect_hl
         else:
@@ -524,9 +523,9 @@ class Sim1D(sc.Site, sm.Site1D):
         else:
             self.reset_site_model(q_model=True)
 
-
         self.simulation_path = self.run_dir + name
 
+        # TODO: replace rectangular vs_space function with new cor_vs_space function.
         self.model_space = rectangular_vs_space(low, high, steps, self.vel_profile['thickness'].tolist(), spacing,
                                                 force_min_spacing)  # build the model space
 
