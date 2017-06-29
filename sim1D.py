@@ -561,6 +561,8 @@ class Sim1D(sc.Site, sm.Site1D):
             "Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]],
                                                                            np.round(amp_mis, 3), 0,
                                                                            np.round(freq_mis, 3)))
+
+        results.loc[0] = self.model_space[1].tolist() + [amp_mis, freq_mis, max_xcor, 0]
         # store result in pandas data frame
         # vals = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, max_xcor, 0]
         # results = results.append(dict_cols(len(self.vel_profile['vs']) + 1, vals), ignore_index=True)
