@@ -13,7 +13,7 @@ import site_class as sc
 import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, \
-    uniform_sub_model_space, sig_resample, rectangular_vs_space, rectangular_space_thickness_calculator, dict_cols
+    uniform_sub_model_space, sig_resample, cor_v_space, rectangular_space_thickness_calculator, dict_cols
 from parsers import parse_simulation_cfg
 # import itertools
 
@@ -511,10 +511,11 @@ class Sim1D(sc.Site, sm.Site1D):
         if not save:
             return results
 
-    def rect_space_search(self, low, high, steps, iterations, name, i_ang=0, spacing=2, force_min_spacing=True,
+    def rect_space_search(self, low, high, iterations, name, i_ang=0, spacing=2, force_min_spacing=True,
                           x_cor_range=(0, 25), const_q=None, elastic=True, cadet_correct=False,
                           fill_troughs_pct=None, save=False, debug=False,
-                          motion='outcrop', konno_ohmachi=None, log_sample=None):
+                          motion='outcrop', konno_ohmachi=None, log_sample=None, cor_co=0.5, std_dv=1,
+                          repeat_layers=True, repeat_chance=0.5):
 
         all_results = []
 
@@ -526,23 +527,27 @@ class Sim1D(sc.Site, sm.Site1D):
         self.simulation_path = self.run_dir + name
 
         # TODO: replace rectangular vs_space function with new cor_vs_space function.
-        self.model_space = rectangular_vs_space(low, high, steps, self.vel_profile['thickness'].tolist(), spacing,
-                                                force_min_spacing)  # build the model space
+        # self.model_space = rectangular_vs_space(low, high, steps, self.vel_profile['thickness'].tolist(), spacing,
+        #                                        force_min_spacing)  # build the model space
+        self.model_space = cor_v_space(self.vel_profile['vs'], self.vel_profile['thickness'], iterations, lower_v=low,
+                                       upper_v=high, cor_co=cor_co, scale=std_dv, repeat_layers=repeat_layers,
+                                       repeat_chance=repeat_chance, spacing=spacing, force_min_spacing=force_min_spacing
+                                       )
 
-        dimensions, indexes = self.model_space.shape
+        dimensions, indexes = self.model_space[0].shape
 
-        random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))
+        # random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))
 
-        realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
-        for i, row in enumerate(random_choices):
-            realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
+        # realisations = np.zeros((iterations, dimensions))  # initialise empty numpy array to be populated
+        # for i, row in enumerate(random_choices):
+        # '    realisations[i] = pick_model(self.model_space, row)  # pick model from model space using indexes
 
         results = pd.DataFrame(
             columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
         results.index.name = 'trial'
 
         # SETUP END #
-
+        self.modify_site_model(self.model_space[1], q_model=True, rect_space=True)
         # run original model
         _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                      fill_troughs_pct=fill_troughs_pct,
@@ -560,7 +565,7 @@ class Sim1D(sc.Site, sm.Site1D):
         vals = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, max_xcor, 0]
         results = results.append(dict_cols(len(self.vel_profile['vs']) + 1, vals), ignore_index=True)
 
-        for i, model in enumerate(realisations):
+        for i, model in enumerate(self.model_space[0]):
             if const_q is None:  # i.e. we're using a qs/vs relation
                 self.modify_site_model(model, q_model=True, rect_space=True)
             else:

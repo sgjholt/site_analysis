@@ -559,25 +559,24 @@ def kamai_vsz(depths, vs30, coeff_file='/data/share/Japan/SiteInfo/kamai16_vs_mo
 
 
 def cor_v_space(v_mod, hl_profile, count, lower_v=75, upper_v=4000, cor_co=0.5, scale=1, plot=False,
-                repeat_layers=False,
-                repeat_chance=0.25, spacing=2, force_min_spacing=True):
+                repeat_layers=False, repeat_chance=0.25, spacing=2, force_min_spacing=True):
     """
 
-    :param v_mod: Initial velocity model.
-    :param hl_profile: Initial thickness profile.
-    :param count: Number of desired models.
-    :param lower_v: Lower Vs limit (m/s).
-    :param upper_v: Upper Vs limit (m/s).
-    :param cor_co: Correlation coefficient (rho) between layers.
-    :param scale: Standard Deviation (sigma) in ln units.
-    :param plot: Visualise resultant model space.
-    :param repeat_layers: Allow chance for Vs to carry over into next layer.
-    :param repeat_chance: Probability of repetition (0-1).
-    :param spacing:
-    :param force_min_spacing:
-    :return:
+    :param v_mod: Initial velocity model. np.ndarray: e.g. ([100, 500, 1000]) (m/s)
+    :param hl_profile: Initial thickness profile. np.ndarray: e.g. ([1, 50, 1000]) (m/s)
+    :param count: Number of desired models/simulations. int: e.g. 1000
+    :param lower_v: Lower Vs limit. float/int: (m/s)
+    :param upper_v: Upper Vs limit. float/int: (m/s)
+    :param cor_co: Correlation coefficient (rho) between layers. float: value from 0-1 (no - full correlation)
+    :param scale: Standard Deviation (sigma) in ln units. float/int: ln units
+    :param plot: Visualise resultant model space. bool: True/False
+    :param repeat_layers: Allow chance for Vs to carry over into next layer. bool: True/False
+    :param repeat_chance: Probability of repetition. float: value from 0-1.
+    :param spacing: the interval of new individual layer thicknesses. int: meters
+    :param force_min_spacing: if smallest thickness of profile < spacing, force spacing to be the smallest thickness to
+           avoid aliasing the profile. bool: True/False
+    :return: model space (count x len(new_thickness')) , new_velocity model (spaced at 'spacing' intervals)
     """
-
     # new_hl_profile = np.insert(np.cumsum(rectangular_space_thickness_calculator(hl_profile))[:-1], 0, np.zeros(1))
     new_hl_profile = np.insert(np.cumsum(rectangular_space_thickness_calculator(
         hl_profile, spacing, force_min_spacing))[:-1], 0, np.zeros(1))
@@ -654,4 +653,6 @@ def cor_v_space(v_mod, hl_profile, count, lower_v=75, upper_v=4000, cor_co=0.5, 
         plt.gca().invert_yaxis()
 
     else:
-        return np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1)).T
+        space = np.concatenate([np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1)),
+                                np.logspace(np.log10(100), np.log10(30), count, base=10)[None, :]])
+        return space.T, np.append(v_mod, np.zeros(1))

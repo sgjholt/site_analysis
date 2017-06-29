@@ -59,8 +59,8 @@ def main():
         sub_uniform_search(site, wd, rd, 50, 10, iterations, name, 0, (0, 25), None, False, False, None,
                            (1, 5, 9), motion, konno_ohmachi)
     else:
-        rect_space_search(site, wd, rd, 70, 3500, 20, iterations, name, 0, 2, True, (0, 25), None, False, False, None,
-                          True, False, motion, None, (250, np.exp(1)))
+        rect_space_search(site, wd, rd, 70, 3500, iterations, name, 0, 2, True, (0, 25), None, False, False, None,
+                          True, False, motion, None, (250, np.exp(1)), 0.5, 1, True, 0.5)
 
 
 def sub_uniform_search(*args):
@@ -97,12 +97,13 @@ def sub_uniform_search(*args):
 
 def rect_space_search(*args):
     site, wd, rd, = args[0:3]
-    name = args[7]
+    name = args[6]
     # TODO: Update this file to incorporate new parameters introduced by using new cor_vs_space function
-    titles = ['site', 'data_dir', 'write_dir', 'low', 'high', 'model_steps', 'iterations', 'name',
+    titles = ['site', 'data_dir', 'write_dir', 'low', 'high', 'iterations', 'name',
               'i_ang', 'spacing[m]', 'force_min_spacing', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct',
               'fill_troughs', 'save',
-              'debug', 'motion', 'konno_ohmachi_smoothing(b)', 'log_spacing-base']
+              'debug', 'motion', 'konno_ohmachi_smoothing(b)', 'log_spacing, base', 'cor_co', 'std_dv(ln units)',
+              'repeat_layers', 'repeat_chance']
 
     const_q = args[9]
     if const_q is None:
@@ -120,7 +121,11 @@ def rect_space_search(*args):
         const_q = None
     site = sd.Sim1D(site, working_directory=wd, run_dir=rd)
 
-    site.rect_space_search(low=70, high=2500, steps=50, iterations=args[6], elastic=False, name=name, save=True)
+    site.rect_space_search(low=args[3], high=args[4], iterations=args[5], name=name, i_ang=args[7], spacing=args[8],
+                           force_min_spacing=args[9], x_cor_range=args[10], const_q=args[11], elastic=args[12],
+                           cadet_correct=args[13], fill_troughs_pct=args[14], save=args[15], debug=args[16],
+                           motion=args[17], konno_ohmachi=args[18], log_sample=args[19], cor_co=args[20],
+                           std_dv=args[21], repeat_layers=args[22], repeat_chance=args[23])
 
 if __name__ == '__main__':
     start_time = time.time()
