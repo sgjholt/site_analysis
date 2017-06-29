@@ -124,7 +124,7 @@ def rect_space_search(*args):
     site.rect_space_search(low=args[3], high=args[4], iterations=args[5], name=name, i_ang=args[7], spacing=args[8],
                            force_min_spacing=args[9], x_cor_range=args[10], const_q=args[11], elastic=args[12],
                            cadet_correct=args[13], fill_troughs_pct=args[14], save=args[15], debug=args[16],
-                           motion=args[17], konno_ohmachi=args[18], log_sample=args[19], cor_co=args[20],
+                           motion=args[17], konno_ohmachi=args[18], log_sample=None, cor_co=args[20],
                            std_dv=args[21], repeat_layers=args[22], repeat_chance=args[23])
 
 if __name__ == '__main__':
