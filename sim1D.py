@@ -512,7 +512,7 @@ class Sim1D(sc.Site, sm.Site1D):
             return results
 
     def rect_space_search(self, low, high, iterations, name, i_ang=0, spacing=2, force_min_spacing=True,
-                          x_cor_range=(0, 25), const_q=None, elastic=True, cadet_correct=False,
+                          x_cor_range=(0, 25), const_q=None, elastic=False, cadet_correct=False,
                           fill_troughs_pct=None, save=False, debug=False,
                           motion='outcrop', konno_ohmachi=None, log_sample=None, cor_co=0.5, std_dv=1,
                           repeat_layers=True, repeat_chance=0.5):
@@ -562,8 +562,8 @@ class Sim1D(sc.Site, sm.Site1D):
                                                                            np.round(amp_mis, 3), 0,
                                                                            np.round(freq_mis, 3)))
         # store result in pandas data frame
-        vals = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, max_xcor, 0]
-        results = results.append(dict_cols(len(self.vel_profile['vs']) + 1, vals), ignore_index=True)
+        # vals = self.Mod['Vs'] + [self.Mod['Qs'][0]] + [amp_mis, freq_mis, max_xcor, 0]
+        # results = results.append(dict_cols(len(self.vel_profile['vs']) + 1, vals), ignore_index=True)
 
         for i, model in enumerate(self.model_space[0]):
             if const_q is None:  # i.e. we're using a qs/vs relation
