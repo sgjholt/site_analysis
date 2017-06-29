@@ -367,12 +367,14 @@ def plot_misfit_space(site_obj, table, normalise=True, log_f_mis=False):
     if not normalise:
         amp_normed = table.amp_mis.values
         xcor_normed = np.abs(table.freq_mis.values)
+        power = table.freq_power
     else:
         if log_f_mis:
             xcor_normed = (table.freq_mis - table.freq_mis.min()) / (table.freq_mis.max() - table.freq_mis.min())
         else:
             xcor_normed = exp_cdf(np.abs(table.freq_mis.values), lam=1)
         amp_normed = (table.amp_mis - table.amp_mis.min()) / (table.amp_mis.max() - table.amp_mis.min())
+        power = table.freq_power
 
     def onpick(event):
         models = []
@@ -388,7 +390,7 @@ def plot_misfit_space(site_obj, table, normalise=True, log_f_mis=False):
 
     matplotlib.rc('font', **font)
     matplotlib.rc('lines', lw=2)
-    ax.scatter(amp_normed, xcor_normed, picker=True, label='Random Trials')
+    ax.scatter(amp_normed, xcor_normed, c=power, picker=True, label='Random Trials')
     if normalise:
         ax.hlines(1, amp_normed.min(), amp_normed.max(), linestyles='dashed', colors='red',
                   label='Auto-Rejected Models')
