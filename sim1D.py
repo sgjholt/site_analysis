@@ -534,7 +534,7 @@ class Sim1D(sc.Site, sm.Site1D):
                                        repeat_chance=repeat_chance, spacing=spacing, force_min_spacing=force_min_spacing
                                        )
 
-        dimensions, indexes = self.model_space[0].shape
+        indexes, dimensions = self.model_space[0].shape
 
         # random_choices = np.random.randint(0, indexes - 1, (iterations, dimensions))
 
