@@ -98,7 +98,6 @@ def sub_uniform_search(*args):
 def rect_space_search(*args):
     site, wd, rd, = args[0:3]
     name = args[6]
-    # TODO: Update this file to incorporate new parameters introduced by using new cor_vs_space function
     titles = ['site', 'data_dir', 'write_dir', 'low', 'high', 'iterations', 'name',
               'i_ang', 'spacing[m]', 'force_min_spacing', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct',
               'fill_troughs', 'save',

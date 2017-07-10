@@ -526,7 +526,6 @@ class Sim1D(sc.Site, sm.Site1D):
 
         self.simulation_path = self.run_dir + name
 
-        # TODO: replace rectangular vs_space function with new cor_vs_space function.
         # self.model_space = rectangular_vs_space(low, high, steps, self.vel_profile['thickness'].tolist(), spacing,
         #                                        force_min_spacing)  # build the model space
         self.model_space = cor_v_space(self.vel_profile['vs'], self.vel_profile['thickness'], iterations, lower_v=low,
