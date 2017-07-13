@@ -317,14 +317,14 @@ class Sim1D(sc.Site, sm.Site1D):
                 else:  # if there are no sub-layers
                     self.Mod['Hl'] = self.vel_profile['thickness']
 
-            self.Mod['Vs'] = model[:-1].tolist()
-            self.Mod['Vp'] = (self.Mod['Vs'] * self.vp_vs).tolist()
-            self.Mod['Dn'] = (calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000).tolist()
-            if q_model:
-                self.Mod['Qs'] = (((np.array(self.Mod['Vs']) / 100) ** 1.6) + 10).tolist()
-            else:
-                self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
-            self.Mod['Qp'] = self.Mod['Qs']
+        self.Mod['Vs'] = model[:-1].tolist()
+        self.Mod['Vp'] = (self.Mod['Vs'] * self.vp_vs).tolist()
+        self.Mod['Dn'] = (calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000).tolist()
+        if q_model:
+            self.Mod['Qs'] = (((np.array(self.Mod['Vs']) / 100) ** 1.6) + 10).tolist()
+        else:
+            self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
+        self.Mod['Qp'] = self.Mod['Qs']
             # print(self.Mod)
 
             # else:
