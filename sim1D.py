@@ -647,7 +647,7 @@ class Sim1D(sc.Site, sm.Site1D):
         results = pd.DataFrame(
             columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
         results.index.name = 'trial'
-
+        print(self.user_defined_model['vs'])
         self.modify_site_model(self.user_defined_model['vs'], q_model=True, refine=True)
         # run original model
         _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
