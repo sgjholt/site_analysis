@@ -196,7 +196,7 @@ def parse_user_mod(path):
     :return:
     """
     mod = np.loadtxt(path, delimiter=',')
-    return {'vs': np.append(mod[:, 0], np.zeros(1)), 'hl': mod[:, 1]}
+    return {'vs': np.append(mod[:, 0], 100), 'hl': mod[:, 1]}
 
 
 
