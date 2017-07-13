@@ -67,7 +67,7 @@ def main():
                       motion, None, (250, np.exp(1)))
 
     else:
-        rect_space_search(site, wd, rd, 70, 3500, iterations, name, 0, 2, True, (0, 25), None, False, False, None,
+        rect_space_search(site, wd, rd, 100, 1500, iterations, name, 0, 5, False, (0, 25), None, False, False, None,
                           True, False, motion, None, (250, np.exp(1)), 0.5, 1, True, 0.5)
 
 
