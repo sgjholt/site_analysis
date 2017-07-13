@@ -128,7 +128,7 @@ def refine_search(*args):
 
     site.refined_rect_space(model=parse_user_mod(args[5]), delta=args[3], iterations=args[4], name=name, i_ang=args[7],
                             x_cor_range=args[8], const_q=const_q, elastic=args[10], cadet_correct=args[11],
-                            fill_troughs_pct=args[12], save=True, motion=args[13], konno_ohmachi=args[14],
+                            fill_troughs_pct=args[12], save=True, motion=args[13], konno_ohmachi=None,
                             log_sample=None)  # Log sample will be args[15] when not looking at Velerio's model.
 
 
