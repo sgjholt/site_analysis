@@ -663,7 +663,7 @@ class Sim1D(sc.Site, sm.Site1D):
             if const_q is None:  # i.e. we're using a qs/vs relation
                 self.modify_site_model(model, q_model=True, refine=True)
             else:
-                self.modify_site_model(model, rect_space=True, refine=True)
+                self.modify_site_model(model, refine=True)
             # calculate misfit
             _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                          fill_troughs_pct=fill_troughs_pct,
