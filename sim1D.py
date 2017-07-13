@@ -271,82 +271,85 @@ class Sim1D(sc.Site, sm.Site1D):
                 self.vp_vs = empty_vpvs
                 self.Mod['Hl'] = self.rect_hl
 
-        if rect_space:
-            hl_vpvs_calc = False
-            if self.rect_hl is not None:
-                hl_vpvs_calc = True
-
-            if not hl_vpvs_calc:
-                self.rect_hl = rectangular_space_thickness_calculator(self.vel_profile['thickness'])
-                tmp_hl_prof = np.insert(np.cumsum(self.rect_hl)[:-1], 0, np.zeros(1))
-                tmp_site_hl = self.vel_profile['depth']
-                tmp_vpvs = self.vp_vs
-                empty_vpvs = np.zeros(len(tmp_hl_prof))
-                for i in range(len(tmp_site_hl)):
-                    if i == 0:
-                        empty_vpvs[np.where(tmp_hl_prof < tmp_site_hl[i])] = tmp_vpvs[i]
-                    else:
-                        empty_vpvs[np.where((tmp_hl_prof < tmp_site_hl[i]) & (tmp_hl_prof >= tmp_site_hl[i - 1]))] = \
-                            tmp_vpvs[i]
-                empty_vpvs[-1] = tmp_vpvs[-1]  # assign half layer vp/vs
-                self.vp_vs = empty_vpvs
-                self.Mod['Hl'] = self.rect_hl
         else:
-            if len(self.vel_profile['thickness']) != (len(model) - 1):  # if it has sub-layering - calc new layer thicks
-                print('Calculating new layer thicknesses for given sub-layers')
-                subl_factor = int((len(model) - 1) / (len(self.vel_profile['thickness']) - 1))
-                # print(subl_factor)  # how many sub-layers were used
-                # # hl = np.zeros(len(model)-1)
-                hl = []
-                # # vp_vs = np.zeros(len(model)-1)
-                vp_vs = []
-                for i, zipped in enumerate(zip(self.vel_profile['thickness'], self.vp_vs)):
-                    if i < len(self.vel_profile['thickness']) - 1:
-                        Hl, Vp_Vs = zipped
-                        for n in range(subl_factor):
-                            hl.append(Hl / subl_factor)
-                            vp_vs.append(Vp_Vs)
-                hl.append(self.vel_profile['thickness'][-1])  # add the half space layer
-                vp_vs.append(self.vp_vs[-1])  # vp/vs ratio for half space layer
-                # print(len(vp_vs), len(hl))
-                self.vp_vs = np.array(vp_vs)  # assign vp_vs back to self
-                self.Mod['Hl'] = hl  # assign layer thicknesses back to self
-            else:  # if there are no sub-layers
-                self.Mod['Hl'] = self.vel_profile['thickness']
 
-        self.Mod['Vs'] = model[:-1].tolist()
-        self.Mod['Vp'] = (self.Mod['Vs'] * self.vp_vs).tolist()
-        self.Mod['Dn'] = (calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000).tolist()
-        if q_model:
-            self.Mod['Qs'] = (((np.array(self.Mod['Vs']) / 100) ** 1.6) + 10).tolist()
-        else:
-            self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
-        self.Mod['Qp'] = self.Mod['Qs']
-        # print(self.Mod)
+            if rect_space:
+                hl_vpvs_calc = False
+                if self.rect_hl is not None:
+                    hl_vpvs_calc = True
 
-        # else:
-        #    for j, var in enumerate(model):  # assign vs values given in model to site
-        #        if j != len(model) - 1:
-        #            self.Mod['Vs'][j] = var
-        #            self.Mod['Qs'][j] = model[-1]
+                if not hl_vpvs_calc:
+                    self.rect_hl = rectangular_space_thickness_calculator(self.vel_profile['thickness'])
+                    tmp_hl_prof = np.insert(np.cumsum(self.rect_hl)[:-1], 0, np.zeros(1))
+                    tmp_site_hl = self.vel_profile['depth']
+                    tmp_vpvs = self.vp_vs
+                    empty_vpvs = np.zeros(len(tmp_hl_prof))
+                    for i in range(len(tmp_site_hl)):
+                        if i == 0:
+                            empty_vpvs[np.where(tmp_hl_prof < tmp_site_hl[i])] = tmp_vpvs[i]
+                        else:
+                            empty_vpvs[np.where((tmp_hl_prof < tmp_site_hl[i]) & (tmp_hl_prof >= tmp_site_hl[i - 1]))] = \
+                                tmp_vpvs[i]
+                    empty_vpvs[-1] = tmp_vpvs[-1]  # assign half layer vp/vs
+                    self.vp_vs = empty_vpvs
+                    self.Mod['Hl'] = self.rect_hl
+            else:
+                if len(self.vel_profile['thickness']) != (
+                    len(model) - 1):  # if it has sub-layering - calc new layer thicks
+                    print('Calculating new layer thicknesses for given sub-layers')
+                    subl_factor = int((len(model) - 1) / (len(self.vel_profile['thickness']) - 1))
+                    # print(subl_factor)  # how many sub-layers were used
+                    # # hl = np.zeros(len(model)-1)
+                    hl = []
+                    # # vp_vs = np.zeros(len(model)-1)
+                    vp_vs = []
+                    for i, zipped in enumerate(zip(self.vel_profile['thickness'], self.vp_vs)):
+                        if i < len(self.vel_profile['thickness']) - 1:
+                            Hl, Vp_Vs = zipped
+                            for n in range(subl_factor):
+                                hl.append(Hl / subl_factor)
+                                vp_vs.append(Vp_Vs)
+                    hl.append(self.vel_profile['thickness'][-1])  # add the half space layer
+                    vp_vs.append(self.vp_vs[-1])  # vp/vs ratio for half space layer
+                    # print(len(vp_vs), len(hl))
+                    self.vp_vs = np.array(vp_vs)  # assign vp_vs back to self
+                    self.Mod['Hl'] = hl  # assign layer thicknesses back to self
+                else:  # if there are no sub-layers
+                    self.Mod['Hl'] = self.vel_profile['thickness']
 
-        #    vp = self.Mod['Vs'] * self.vp_vs   # use vp/vs to calculate Vp values such that physical properties are
-        #                                       # consistent in each layer
-        #    dn = calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000  # calculate density based on Vp
-        #    for j, var in enumerate(vp):  # assign values of vp and density to site
-        #        self.Mod['Vp'][j] = var  # vp values
-        #        self.Mod['Dn'][j] = dn[j]  # density values
+            self.Mod['Vs'] = model[:-1].tolist()
+            self.Mod['Vp'] = (self.Mod['Vs'] * self.vp_vs).tolist()
+            self.Mod['Dn'] = (calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000).tolist()
+            if q_model:
+                self.Mod['Qs'] = (((np.array(self.Mod['Vs']) / 100) ** 1.6) + 10).tolist()
+            else:
+                self.Mod['Qs'] = [model[-1] for _ in range(model[:-1].size)]
+            self.Mod['Qp'] = self.Mod['Qs']
+            # print(self.Mod)
 
-        #   if self.litho:  # extra layer to consider - added half layer at base
-        #       for key in ['Vs', 'Vp', 'Dn']:
-        #            self.Mod[key][-1] = self.Mod[key][-2]  # make sure half layer = layer above (Thompson, 2012)
+            # else:
+            #    for j, var in enumerate(model):  # assign vs values given in model to site
+            #        if j != len(model) - 1:
+            #            self.Mod['Vs'][j] = var
+            #            self.Mod['Qs'][j] = model[-1]
+
+            #    vp = self.Mod['Vs'] * self.vp_vs   # use vp/vs to calculate Vp values such that physical properties are
+            #                                       # consistent in each layer
+            #    dn = calc_density_profile(np.array(self.Mod['Vp']) / 1000) * 1000  # calculate density based on Vp
+            #    for j, var in enumerate(vp):  # assign values of vp and density to site
+            #        self.Mod['Vp'][j] = var  # vp values
+            #        self.Mod['Dn'][j] = dn[j]  # density values
+
+            #   if self.litho:  # extra layer to consider - added half layer at base
+            #       for key in ['Vs', 'Vp', 'Dn']:
+            #            self.Mod[key][-1] = self.Mod[key][-2]  # make sure half layer = layer above (Thompson, 2012)
 
             # perms = itertools.product([x for x in range(indexes)], repeat=dimensions)
 
             # for i, perm in enumerate(perms):
             #    model = pick_model(model_space, perm)
             # print(self.Mod)
-        #    return None
+            #    return None
 
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, i_ang=0,
