@@ -669,3 +669,24 @@ def refined_search(initial_mod_vs, delta, its, scale=1):
         trials[i] = np.exp(stats.truncnorm.rvs(a, b, np.log(current_v), scale=scale, size=its))
 
     return trials.T
+
+
+def vs_variable(vs, thick, ref_depth):
+    """
+    Calculates time averaged velocity to an arbitrary reference depth.
+    :param vs: np.ndarray(): velocity array in m/s.
+    :param thick: np.ndarray(): thickness array in m.
+    :param ref_depth: float/int: reference depth in m.
+    :return: float: time averaged velocity in m/s.
+    """
+    depth = np.append(np.zeros(1), np.cumsum(thick)[:-1])
+    inds = np.where(depth < ref_depth)[0]
+    if not np.where(depth == ref_depth)[0]:
+        thick = thick[inds]
+        thick[-1] = ref_depth - np.sum(thick[inds[:-1]])
+        # print(thick)
+    else:
+        # print('special case')
+        thick = thick[inds]
+
+    return ref_depth / np.sum(thick / vs[inds])

@@ -196,7 +196,7 @@ def best_fitting_model(site_obj, orig, minimum=None, thrsh=None, elastic=False, 
         print('{0} models found'.format(len(subset)))
         for row in subset.iterrows():
             model = np.array([num[1] for num in row[1].iteritems()])
-            site_obj.modify_site_model(model[0:-4], q_model=q_model)
+            site_obj.modify_site_model(model[0:-5], q_model=q_model)
             if fill_troughs_pct is not None:
                 fwd = fill_troughs(site_obj.linear_forward_model_1d(elastic=elastic, motion=motion,
                                                                     konno_ohmachi=konno_ohmachi),
@@ -421,9 +421,10 @@ def vs_plot(site_obj, df):
     opt_minimum = df[df.amp_mis == df.amp_mis.values[1:].min()].values[0][:-5]
     spacing = float(site_obj.sim_pars['spacing[m]'])
 
-    depth = np.cumsum([0] + [spacing for _ in range(len(orig) - 1)])
-
     stats = df.describe()
+    depth = np.cumsum([0] + [spacing for _ in range(len(stats.loc['mean'][:-5]) - 1)])
+
+
 
     mu = stats.loc['mean'].values[:-5]
     plus_sig, minus_sig = (mu + stats.loc['std'].values[:-5].astype(float), mu - stats.loc['std'].values[:-5])
