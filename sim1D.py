@@ -29,6 +29,7 @@ class Sim1D(sc.Site, sm.Site1D):
     rect_hl = None
     VLER = False
     user_defined_model = {}
+    rect_space_search_pars = {}
 
     def __init__(self, name, working_directory, run_dir=None, litho=False, vel_file_dir=None):
         """
@@ -279,7 +280,12 @@ class Sim1D(sc.Site, sm.Site1D):
                     hl_vpvs_calc = True
 
                 if not hl_vpvs_calc:
-                    self.rect_hl = rectangular_space_thickness_calculator(self.vel_profile['thickness'])
+                    self.rect_hl = rectangular_space_thickness_calculator(self.vel_profile['thickness'],
+                                                                          spacing=self.rect_space_search_pars[
+                                                                              'spacing'],
+                                                                          force_min_spacing=self.rect_space_search_pars[
+                                                                              'force_min_spacing'])
+
                     tmp_hl_prof = np.insert(np.cumsum(self.rect_hl)[:-1], 0, np.zeros(1))
                     tmp_site_hl = self.vel_profile['depth']
                     tmp_vpvs = self.vp_vs
@@ -541,6 +547,8 @@ class Sim1D(sc.Site, sm.Site1D):
                           fill_troughs_pct=None, save=False, debug=False,
                           motion='outcrop', konno_ohmachi=None, log_sample=None, cor_co=0.5, std_dv=1,
                           repeat_layers=True, repeat_chance=0.5):
+
+        self.rect_space_search_pars = {'spacing': spacing, 'force_min_spacing': force_min_spacing}
 
         if const_q is not None:
             self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
