@@ -414,3 +414,33 @@ def plot_misfit_space(site_obj, table, normalise=True, log_f_mis=False):
 
     # plt.xlim([0, amp_normed.max()+0.1])
     plt.show()
+
+
+def vs_plot(site_obj, df):
+    orig_prof, orig_depth = (site_obj.vel_profile['vs'], [0] + site_obj.vel_profile['depth'].tolist()[:-1])
+    opt_minimum = df[df.amp_mis == df.amp_mis.values[1:].min()].values[0][:-5]
+    spacing = float(site_obj.sim_pars['spacing[m]'])
+
+    depth = np.cumsum([0] + [spacing for _ in range(len(orig) - 1)])
+
+    stats = df.describe()
+
+    mu = stats.loc['mean'].values[:-5]
+    plus_sig, minus_sig = (mu + stats.loc['std'].values[:-5].astype(float), mu - stats.loc['std'].values[:-5])
+
+    fig, ax = plt.subplots(1, 1)
+
+    ax.step(orig_prof, orig_depth, 'k', label='start')
+    ax.step(mu, depth, 'ro', label='mean optimal')
+    ax.step(opt_minimum, depth, 'bo', label='min RMS')
+    ax.step(plus_sig, depth, 'r--', label=r'$+/-\sigma$')
+    ax.step(minus_sig, depth, 'r--')
+    ax.grid(which='both')
+    plt.suptitle('Uncertainty in Vs after {} trials'.format(site_obj.sim_pars['iterations']))
+    plt.xlabel('$Vs [m/s]$')
+    plt.ylabel('$Depth [m]$')
+    plt.xlim([int(site_obj.sim_pars['low']), int(site_obj.sim_pars['high'])])
+    plt.ylim([0, depth[-1] + spacing])
+    plt.gca().invert_yaxis()
+    plt.legend()
+    plt.show()

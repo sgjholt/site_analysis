@@ -189,6 +189,18 @@ def parse_simulation_cfg(path):
     return dict(contents)
 
 
+def parse_user_mod(path):
+    """
+    Parse a custom model to be refined as python dict.
+    :param path:
+    :return:
+    """
+    mod = np.loadtxt(path, delimiter=',')
+    return {'vs': np.append(mod[:, 0], np.zeros(1)), 'hl': mod[:, 1]}
+
+
+
+
 #for key, val in out.items():
 #    if val.isnumeric:
 #        out[key] = float(val)

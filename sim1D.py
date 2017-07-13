@@ -13,7 +13,7 @@ import site_class as sc
 import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, \
-    uniform_sub_model_space, sig_resample, cor_v_space, rectangular_space_thickness_calculator, dict_cols
+    uniform_sub_model_space, sig_resample, cor_v_space, rectangular_space_thickness_calculator, refined_search
 from parsers import parse_simulation_cfg
 # import itertools
 
@@ -28,6 +28,7 @@ class Sim1D(sc.Site, sm.Site1D):
     orig_model_stats = {}
     rect_hl = None
     VLER = False
+    user_defined_model = {}
 
     def __init__(self, name, working_directory, run_dir=None, litho=False, vel_file_dir=None):
         """
@@ -237,7 +238,7 @@ class Sim1D(sc.Site, sm.Site1D):
         if show:
             plt.show()
 
-    def modify_site_model(self, model, q_model=False, rect_space=False):
+    def modify_site_model(self, model, q_model=False, rect_space=False, refine=False):
         """
         This function will modify the site model based on a specified Vs profile plus Qs value (model[-1])
 
@@ -249,6 +250,26 @@ class Sim1D(sc.Site, sm.Site1D):
         #  self.Mod = {'Dn': [], 'Hl': [], 'Qp': [], 'Qs': [], 'Vp': [], 'Vs': []}
         #  case 0 - 'Hl' has not been changed to represent sublayer thicknesses - not the correct length
         #  must change Thicknesses, Density, Vp, Vs, Qp an Qs
+        if refine:
+            hl_vpvs_calc = False
+            if self.rect_hl is not None:
+                hl_vpvs_calc = True
+
+            if not hl_vpvs_calc:
+                self.rect_hl = self.user_defined_model['hl']
+                tmp_hl_prof = np.insert(np.cumsum(self.rect_hl)[:-1], 0, np.zeros(1))
+                tmp_site_hl = self.vel_profile['depth']
+                tmp_vpvs = self.vp_vs
+                empty_vpvs = np.zeros(len(tmp_hl_prof))
+                for i in range(len(tmp_site_hl)):
+                    if i == 0:
+                        empty_vpvs[np.where(tmp_hl_prof < tmp_site_hl[i])] = tmp_vpvs[i]
+                    else:
+                        empty_vpvs[np.where((tmp_hl_prof < tmp_site_hl[i]) & (tmp_hl_prof >= tmp_site_hl[i - 1]))] = \
+                            tmp_vpvs[i]
+                empty_vpvs[-1] = tmp_vpvs[-1]  # assign half layer vp/vs
+                self.vp_vs = empty_vpvs
+                self.Mod['Hl'] = self.rect_hl
 
         if rect_space:
             hl_vpvs_calc = False
@@ -326,6 +347,7 @@ class Sim1D(sc.Site, sm.Site1D):
             #    model = pick_model(model_space, perm)
             # print(self.Mod)
         #    return None
+
 
     def uniform_sub_random_search(self, pct_variation, steps, iterations, name, i_ang=0,
                                   x_cor_range=(0, 25), const_q=None, n_sub_layers=(), elastic=True, cadet_correct=False,
@@ -517,8 +539,6 @@ class Sim1D(sc.Site, sm.Site1D):
                           motion='outcrop', konno_ohmachi=None, log_sample=None, cor_co=0.5, std_dv=1,
                           repeat_layers=True, repeat_chance=0.5):
 
-        all_results = []
-
         if const_q is not None:
             self.Mod['Qs'] = [const_q for _ in self.Mod['Vs']]
         else:
@@ -589,6 +609,76 @@ class Sim1D(sc.Site, sm.Site1D):
         else:
             return results
 
+    def refined_rect_space(self, model, delta, iterations, name, i_ang=0, x_cor_range=(0, 25), const_q=None,
+                           elastic=False,
+                           cadet_correct=False, fill_troughs_pct=None, save=False, motion='outcrop',
+                           konno_ohmachi=None, log_sample=None):
+        """
+
+        :param model:
+        :param delta:
+        :param iterations:
+        :param name:
+        :param i_ang:
+        :param x_cor_range:
+        :param const_q:
+        :param elastic:
+        :param cadet_correct:
+        :param fill_troughs_pct:
+        :param save:
+        :param debug:
+        :param motion:
+        :param konno_ohmachi:
+        :param log_sample:
+        :return:
+        """
+        # This is the model to be refined, stored in memory.
+        self.user_defined_model = model
+        # Where the result will be stored.
+        self.simulation_path = self.run_dir + name
+        # Define the refinement space values for search.
+        self.model_space = refined_search(self.user_defined_model['vs'], delta, iterations)
+
+        indexes, dimensions = self.model_space.shape
+
+        results = pd.DataFrame(
+            columns=df_cols(dimensions=dimensions, sub_layers=True))  # build pd DataFrame to store results
+        results.index.name = 'trial'
+
+        self.modify_site_model(self.user_defined_model['vs'], q_model=True, rect_space=True)
+        # run original model
+        _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                     fill_troughs_pct=fill_troughs_pct,
+                                                     i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                                     konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+
+        print(
+            "Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(0, self.Mod['Vs'] + [self.Mod['Qs'][0]],
+                                                                           np.round(amp_mis, 3), 0,
+                                                                           np.round(freq_mis, 3)))
+
+        results.loc[0] = self.model_space[1].tolist() + [amp_mis, freq_mis, max_xcor, 0]
+
+        for i, model in enumerate(self.model_space[0]):
+            if const_q is None:  # i.e. we're using a qs/vs relation
+                self.modify_site_model(model, q_model=True, rect_space=True)
+            else:
+                self.modify_site_model(model, rect_space=True)
+            # calculate misfit
+            _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
+                                                         fill_troughs_pct=fill_troughs_pct,
+                                                         i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
+                                                         konno_ohmachi=konno_ohmachi, log_sample=log_sample)
+
+            # store result in data frame
+            results.loc[i + 1] = model.tolist() + [amp_mis, freq_mis, max_xcor, 0]
+            print("Trial:{0}-Model:{1}-Misfit:({2},{4})-N_sub_layers:{3}".format(i + 1, model, np.round(amp_mis, 3), 0,
+                                                                                 np.round(freq_mis, 3)))
+        if save:
+            results.to_csv(self.simulation_path + '.csv')
+        else:
+            return results
+            # TODO: test this function
     def reset_site_model(self, custom_model=None, q_model=False):
         """
         Reset the model to the original site model.

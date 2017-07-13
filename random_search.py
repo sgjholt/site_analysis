@@ -12,6 +12,7 @@ import os
 import sys
 import numpy as np
 import sim1D as sd
+from parsers import parse_user_mod
 
 __author__ = 'James Holt'
 # ---------------------------------modules--------------------------------------#
@@ -58,6 +59,11 @@ def main():
     if rect_uni == 'uniform':
         sub_uniform_search(site, wd, rd, 50, 10, iterations, name, 0, (0, 25), None, False, False, None,
                            (1, 5, 9), motion, konno_ohmachi)
+    elif rect_uni == 'refine':
+        refine_search(site, wd, rd, 200, iterations, '/loc/f_name.mod', name, 0, (0, 25), None, False, False, None,
+                      True,
+                      motion, None, (250, np.exp(1)))
+
     else:
         rect_space_search(site, wd, rd, 70, 3500, iterations, name, 0, 2, True, (0, 25), None, False, False, None,
                           True, False, motion, None, (250, np.exp(1)), 0.5, 1, True, 0.5)
@@ -93,6 +99,35 @@ def sub_uniform_search(*args):
                                    i_ang=i_ang, x_cor_range=x_range, const_q=const_q, elastic=elastic,
                                    cadet_correct=cadet_correct, fill_troughs_pct=fill_troughs, save=True,
                                    n_sub_layers=n_sub_layers, motion=motion, konno_ohmachi=konno_ohmachi)
+
+
+def refine_search(*args):
+    site, wd, rd, = args[0:3]
+    name = args[6]
+    titles = ['site', 'data_dir', 'write_dir', 'delta', 'iterations', 'refine_model_fname', 'name',
+              'i_ang', 'x_range_for_xcor', 'const_q', 'elastic', 'cadet_correct',
+              'fill_troughs', 'save', 'motion', 'konno_ohmachi_smoothing(b)', 'log_spacing, base']
+
+    const_q = args[9]
+    if const_q is None:
+        const_q = 'Valerio-ETH-model'
+
+    with open(rd + name + '.cfg', 'wt') as f:
+        f.write('config file for {0}'.format(name).upper())
+        f.write('\n')
+        f.write('\n')
+        for i, var in enumerate(args):
+            f.write("{0} = {1}".format(titles[i], var))
+            f.write('\n')
+
+    if type(const_q) is str:
+        const_q = None
+    site = sd.Sim1D(site, working_directory=wd, run_dir=rd)
+
+    site.refined_rect_space(model=parse_user_mod(args[5]), delta=args[3], iterations=args[4], name=name, i_ang=args[7],
+                            x_cor_range=args[8], const_q=const_q, elastic=args[10], cadet_correct=args[11],
+                            fill_troughs_pct=args[12], save=True, motion=args[13], konno_ohmachi=args[14],
+                            log_sample=None)  # Log sample will be args[15] when not looking at Velerio's model.
 
 
 def rect_space_search(*args):
