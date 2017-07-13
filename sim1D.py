@@ -660,9 +660,9 @@ class Sim1D(sc.Site, sm.Site1D):
                                                                            np.round(amp_mis, 3), 0,
                                                                            np.round(freq_mis, 3)))
 
-        results.loc[0] = self.model_space[1].tolist() + [amp_mis, freq_mis, max_xcor, 0]
+        results.loc[0] = self.user_defined_model['vs'][:-1].tolist() + [amp_mis, freq_mis, max_xcor, 0]
 
-        for i, model in enumerate(self.model_space[0]):
+        for i, model in enumerate(self.model_space):
             if const_q is None:  # i.e. we're using a qs/vs relation
                 self.modify_site_model(model, q_model=True, refine=True)
             else:
