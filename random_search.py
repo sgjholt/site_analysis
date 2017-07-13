@@ -15,13 +15,15 @@ import sim1D as sd
 from parsers import parse_user_mod
 
 __author__ = 'James Holt'
+
+
 # ---------------------------------modules--------------------------------------#
 
 
 def main():
     """
-    
-    :return: 
+
+    :return:
     """
     try:
         site = sys.argv[1]
@@ -39,7 +41,7 @@ def main():
         motion = 'outcrop'
         konno_ohmachi = None
         rect_uni = 'uniform'
-
+    user_mod = '/data/share/Japan/SiteInfo/S_B/VLER10_blind/refine_model.mod'
     name = site + '_' + rect_uni + '_' + str(iterations) + '_run_0_'
     wd = '/data/share/Japan/SiteInfo/S_B/VLER10_blind/'
     # rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl_{1}_smooth-{2}/'.format(site, motion, konno_ohmachi)
@@ -50,9 +52,9 @@ def main():
         print('creating dir: {0}'.format(rd))
         os.mkdir(rd)
 
-    if os.path.exists(rd+name+'.cfg'):
+    if os.path.exists(rd + name + '.cfg'):
         j = 0
-        while os.path.exists(rd+name+'.cfg'):
+        while os.path.exists(rd + name + '.cfg'):
             j += 1  # if the file already exists, give it another name
             name = name.replace('run_0', 'run_{0}'.format(j))
         print('name changed to: {0}'.format(name))
@@ -60,7 +62,7 @@ def main():
         sub_uniform_search(site, wd, rd, 50, 10, iterations, name, 0, (0, 25), None, False, False, None,
                            (1, 5, 9), motion, konno_ohmachi)
     elif rect_uni == 'refine':
-        refine_search(site, wd, rd, 200, iterations, '/loc/f_name.mod', name, 0, (0, 25), None, False, False, None,
+        refine_search(site, wd, rd, 200, iterations, user_mod, name, 0, (0, 25), None, False, False, None,
                       True,
                       motion, None, (250, np.exp(1)))
 
@@ -82,7 +84,7 @@ def sub_uniform_search(*args):
     vrs = [site, wd, rd, pct, steps, iters, i_ang, x_range, const_q, elastic, cadet_correct, fill_troughs,
            n_sub_layers, motion, konno_ohmachi]
 
-    with open(rd+name+'.cfg', 'wt') as f:
+    with open(rd + name + '.cfg', 'wt') as f:
         f.write('config file for {0}'.format(name).upper())
         f.write('\n')
         f.write('\n')
@@ -160,6 +162,7 @@ def rect_space_search(*args):
                            cadet_correct=args[13], fill_troughs_pct=args[14], save=args[15], debug=args[16],
                            motion=args[17], konno_ohmachi=args[18], log_sample=None, cor_co=args[20],
                            std_dv=args[21], repeat_layers=args[22], repeat_chance=args[23])
+
 
 if __name__ == '__main__':
     start_time = time.time()
