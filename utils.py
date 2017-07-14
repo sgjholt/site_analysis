@@ -658,7 +658,7 @@ def cor_v_space(v_mod, hl_profile, count, lower_v=75, upper_v=4000, cor_co=0.5, 
         return space.T, np.append(v_mod, np.zeros(1))
 
 
-def refined_search(initial_mod_vs, delta, its, scale=1):
+def refined_search(initial_mod_vs, delta, its, scale=1, rnd=True):
     trials = np.zeros((len(initial_mod_vs), its))
     for i, current_v in enumerate(initial_mod_vs):
         if current_v - delta >= 100:
@@ -667,8 +667,8 @@ def refined_search(initial_mod_vs, delta, its, scale=1):
         else:
             a, b = (np.log(100) - np.log(current_v)) / scale, (np.log(current_v + delta) - np.log(current_v)) / scale
         trials[i] = np.exp(stats.truncnorm.rvs(a, b, np.log(current_v), scale=scale, size=its))
-
-    return trials.T
+    if rnd:
+        return np.round(trials.T, 0)
 
 
 def vs_variable(vs, thick, ref_depth):
