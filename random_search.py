@@ -45,7 +45,7 @@ def main():
     name = site + '_' + rect_uni + '_' + str(iterations) + '_run_0_'
     wd = '/data/share/Japan/SiteInfo/S_B/VLER10_blind/'
     # rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl_{1}_smooth-{2}/'.format(site, motion, konno_ohmachi)
-    rd = '/data/share/Japan/SiteInfo/S_B/VLER10_blind/'
+    rd = '/data/share/Japan/SiteInfo/S_B/VLER10_blind_2/'
     # TODO: Revert changes after Valerio blind test_cor_vs_space.py
 
     if not os.path.isdir(rd):  # if not a directory, make it
