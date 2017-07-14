@@ -728,9 +728,9 @@ def refined_search(v_mod, delta, its, scale=1, rnd=True, repeat_layers=True, cor
     else:
         space = np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1))
         if rnd:
-            return np.round(space.T, -1), np.append(v_mod, np.zeros(1))
+            return np.round(space.T, -1)
         else:
-            return space.T, np.append(v_mod, np.zeros(1))
+            return space.T
 
 def vs_variable(vs, thick, ref_depth):
     """
