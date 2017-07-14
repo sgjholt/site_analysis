@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 from site_class import Site
-from utils import rand_sites, fill_troughs, exp_cdf
+from utils import rand_sites, fill_troughs, exp_cdf, vs_variable
 
 
 def qc_sb(working_dir, sites=None, random=False):
@@ -423,12 +423,12 @@ def vs_plot(site_obj, df):
     try:
         spacing = float(site_obj.sim_pars['spacing[m]'])
 
-        stats = df.describe()
+        stats = df.apply(np.log).describe().apply(np.exp)
         depth = np.cumsum([0] + [spacing for _ in range(len(stats.loc['mean'][:-5]) - 1)])
     except:
         depth = np.append(np.zeros(1), np.cumsum(np.loadtxt(
             site_obj.sim_pars['refine_model_fname'], delimiter=',')[:, 1])[:-1])
-        stats = df.describe()
+        stats = df.apply(np.log).describe().apply(np.exp)
 
     mu = stats.loc['mean'].values[:-5]
     plus_sig, minus_sig = (mu + stats.loc['std'].values[:-5].astype(float), mu - stats.loc['std'].values[:-5])
@@ -441,7 +441,10 @@ def vs_plot(site_obj, df):
     ax.step(plus_sig, depth, 'r--', label=r'$+/-\sigma$')
     ax.step(minus_sig, depth, 'r--')
     ax.grid(which='both')
-    plt.suptitle('Uncertainty in Vs after {} trials'.format(site_obj.sim_pars['iterations']))
+    plt.suptitle('Uncertainty in Vs after {0} trials - Vs30: {1}'.format(site_obj.sim_pars['iterations'],
+                                                                         vs_variable(mu, np.loadtxt(
+                                                                             site_obj.sim_pars['refine_model_fname'],
+                                                                             delimiter=',')[:, 1], 30)))
     plt.xlabel('$Vs [m/s]$')
     plt.ylabel('$Depth [m]$')
     try:
