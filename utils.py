@@ -594,12 +594,12 @@ def cor_v_space(v_mod, hl_profile, count, lower_v=75, upper_v=4000, cor_co=0.5, 
     v_mod = mod
 
     dists = np.zeros((v_mod.size, count))
-
+    pdf = []
     for i, vel in enumerate(v_mod):
         a, b = np.max(np.array([(np.log(lower_v) - np.log(vel)) / scale, -2])), np.min(
             np.array([(np.log(upper_v) - np.log(vel)) / scale, 2]))
-        pdf = stats.truncnorm(a, b, np.log(vel), scale=scale)
-        dists[i] = (pdf.rvs(count) - np.log(vel)) / scale
+        pdf.append(stats.truncnorm(a, b, np.log(vel), scale=scale))
+        dists[i] = (pdf[i].rvs(count) - np.log(vel)) / scale
 
     for i, c_layer in enumerate(dists[1:]):
 
@@ -629,7 +629,7 @@ def cor_v_space(v_mod, hl_profile, count, lower_v=75, upper_v=4000, cor_co=0.5, 
                 all_replaced = True
             else:
                 if counter < 1000:
-                    replace = (pdf.rvs(len(locs[0])) - np.log(v_mod[i + 1])) / scale
+                    replace = (pdf[i].rvs(len(locs[0])) - np.log(v_mod[i + 1])) / scale
                     tmp[locs] = (cor_co * dists[i][locs]) + replace * (np.sqrt(1 - cor_co ** 2))
                 else:  # protects against getting stuck upper limit -
                     # usually only a problem if user wants high/unity correlation.
@@ -658,18 +658,80 @@ def cor_v_space(v_mod, hl_profile, count, lower_v=75, upper_v=4000, cor_co=0.5, 
         return space.T, np.append(v_mod, np.zeros(1))
 
 
-def refined_search(initial_mod_vs, delta, its, scale=1, rnd=True):
-    trials = np.zeros((len(initial_mod_vs), its))
-    for i, current_v in enumerate(initial_mod_vs):
+def refined_search(v_mod, delta, its, scale=1, rnd=True, repeat_layers=True, cor_co=0.5, repeat_chance=0.3, plot=False):
+    trials = np.zeros((len(v_mod), its))
+    pdf = []
+    for i, current_v in enumerate(v_mod):
         if current_v - delta >= 100:
             a, b = (np.log(current_v - delta) - np.log(current_v)) / scale, (
                 np.log(current_v + delta) - np.log(current_v)) / scale
         else:
             a, b = (np.log(100) - np.log(current_v)) / scale, (np.log(current_v + delta) - np.log(current_v)) / scale
-        trials[i] = np.exp(stats.truncnorm.rvs(a, b, np.log(current_v), scale=scale, size=its))
-    if rnd:
-        return np.round(trials.T, -1)
+        pdf.append(stats.truncnorm(a, b, np.log(current_v), scale=scale))
+        trials[i] = pdf[i].rvs(its) - np.log(current_v)
 
+    count = its
+    dists = trials
+    for i, c_layer in enumerate(dists[1:]):
+
+        all_replaced = False
+
+        if repeat_layers:
+            tmp = copy.deepcopy(c_layer)
+            lucky_draw = np.where(np.random.random(count) <= repeat_chance)
+            tmp[lucky_draw] = ((dists[i][lucky_draw] * scale) + (np.log(v_mod[i]) - np.log(v_mod[i + 1]))) / scale
+            inds = np.arange(0, count)
+            others = np.array(list(set(inds) - set(lucky_draw[0])))
+            print(others)
+            if len(others) > 0:
+                tmp[others] = (cor_co * dists[i][others]) + c_layer[others] * (np.sqrt(1 - cor_co ** 2))
+            else:
+                pass
+        else:
+            tmp = (cor_co * dists[i]) + c_layer * (np.sqrt(1 - cor_co ** 2))
+
+        counter = 0
+        lower_v = np.max([v_mod[i] - delta, 100])
+        upper_v = v_mod[i] + delta
+        while not all_replaced:
+            counter += 1
+            locs = np.where(((tmp * scale) + np.log(v_mod[i + 1]) <= np.log(lower_v)) | (
+                (tmp * scale) + np.log(v_mod[i + 1]) > np.log(upper_v)))
+            print(i, len(locs[0]), np.exp(tmp[locs] + np.log(v_mod[i + 1])))
+            if len(locs[0]) == 0:
+                all_replaced = True
+            else:
+                if counter < 1000:
+                    replace = (pdf[i].rvs(len(locs[0])) - np.log(v_mod[i + 1])) / scale
+                    tmp[locs] = (cor_co * dists[i][locs]) + replace * (np.sqrt(1 - cor_co ** 2))
+                else:  # protects against getting stuck upper limit -
+                    # usually only a problem if user wants high/unity correlation.
+                    tmp[locs] = (np.log(upper_v) - np.log(v_mod[i + 1])) / scale
+
+        dists[i + 1] = tmp
+        #  dists[i + 1] = (cor_co * dists[i]) + c_layer * (np.sqrt(1 - cor_co ** 2))
+    if plot:
+        layers = [x + 0.5 for x in range(len(v_mod))]
+        plt.figure()
+        plt.step(v_mod, layers, 'k')
+        counter = 0
+        for model in np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1)).T:
+            plt.step(model, layers, 'r', linestyle='--')
+            counter += 1
+            if counter > count:
+                break
+        plt.xlabel('Velocity')
+        plt.ylabel('Layer')
+        plt.ylim([0.5, len(v_mod) + 0.5])
+        plt.gca().invert_yaxis()
+
+    else:
+        space = np.concatenate([np.exp((np.array(dists) * scale) + np.log(v_mod).reshape((len(v_mod)), 1)),
+                                np.logspace(np.log10(100), np.log10(30), count, base=10)[None, :]])
+        if rnd:
+            return np.round(space.T, -1), np.append(v_mod, np.zeros(1))
+        else:
+            return space.T, np.append(v_mod, np.zeros(1))
 
 def vs_variable(vs, thick, ref_depth):
     """
