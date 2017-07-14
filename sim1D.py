@@ -658,6 +658,9 @@ class Sim1D(sc.Site, sm.Site1D):
         print(self.user_defined_model['vs'])
         self.modify_site_model(self.user_defined_model['vs'], q_model=True, refine=True)
         # run original model
+        if self.VLER:
+            self.Mod['Qs'] = [20, 20, 40, 40, 40, 50]
+            self.Mod['Qs'] = [1900, 1900, 1900, 1900, 1900, 2100]
         _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                      fill_troughs_pct=fill_troughs_pct,
                                                      i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,
@@ -676,6 +679,9 @@ class Sim1D(sc.Site, sm.Site1D):
             else:
                 self.modify_site_model(model, refine=True)
             # calculate misfit
+            if self.VLER:
+                self.Mod['Qs'] = [20, 20, 40, 40, 40, 50]
+                self.Mod['Qs'] = [1900, 1900, 1900, 1900, 1900, 2100]
             _, amp_mis, freq_mis, max_xcor = self.misfit(elastic=elastic, cadet_correct=cadet_correct,
                                                          fill_troughs_pct=fill_troughs_pct,
                                                          i_ang=i_ang, x_cor_range=x_cor_range, motion=motion,

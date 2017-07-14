@@ -41,7 +41,7 @@ def main():
         motion = 'outcrop'
         konno_ohmachi = None
         rect_uni = 'uniform'
-    user_mod = '/data/share/Japan/SiteInfo/S_B/VLER10_blind/refine_model.mod'
+    user_mod = '/data/share/Japan/SiteInfo/S_B/VLER10_blind/VLER.mod'
     name = site + '_' + rect_uni + '_' + str(iterations) + '_run_0_'
     wd = '/data/share/Japan/SiteInfo/S_B/VLER10_blind/'
     # rd = '/data/share/Japan/SiteInfo/S_B/{0}_Vs_MC_subl_{1}_smooth-{2}/'.format(site, motion, konno_ohmachi)
