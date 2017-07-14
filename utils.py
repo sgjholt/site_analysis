@@ -668,7 +668,7 @@ def refined_search(initial_mod_vs, delta, its, scale=1, rnd=True):
             a, b = (np.log(100) - np.log(current_v)) / scale, (np.log(current_v + delta) - np.log(current_v)) / scale
         trials[i] = np.exp(stats.truncnorm.rvs(a, b, np.log(current_v), scale=scale, size=its))
     if rnd:
-        return np.round(trials.T, 0)
+        return np.round(trials.T, -1)
 
 
 def vs_variable(vs, thick, ref_depth):
