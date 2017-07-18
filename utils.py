@@ -752,3 +752,18 @@ def vs_variable(vs, thick, ref_depth):
         thick = thick[inds]
 
     return ref_depth / np.sum(thick / vs[inds])
+
+
+def refined_search_2(v_mod, delta, its, scale=1, rnd=True):
+    trials = np.zeros((len(v_mod), its))
+    for i, current_v in enumerate(v_mod):
+        if current_v - delta >= 100:
+            a, b = (np.log(current_v - delta) - np.log(current_v)) / scale, (
+                np.log(current_v + delta) - np.log(current_v)) / scale
+        else:
+            a, b = (np.log(100) - np.log(current_v)) / scale, (np.log(current_v + delta) - np.log(current_v)) / scale
+        trials[i] = stats.truncnorm.rvs(a, b, np.log(current_v), scale=scale, size=its)
+    if rnd:
+        return np.round(np.exp(trials.T), -1)
+    else:
+        np.exp(trials.T)

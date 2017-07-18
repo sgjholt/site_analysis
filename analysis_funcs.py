@@ -425,7 +425,7 @@ def vs_plot(site_obj, df):
 
         stats = df.apply(np.log).describe().apply(np.exp)
         depth = np.cumsum([0] + [spacing for _ in range(len(stats.loc['mean'][:-5]) - 1)])
-    except:
+    except KeyError:
         depth = np.append(np.zeros(1), np.cumsum(np.loadtxt(
             site_obj.sim_pars['refine_model_fname'], delimiter=',')[:, 1])[:-1])
         stats = df.apply(np.log).describe().apply(np.exp)

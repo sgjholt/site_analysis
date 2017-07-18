@@ -13,7 +13,7 @@ import site_class as sc
 import libs.SiteModel as sm
 import matplotlib.pyplot as plt
 from utils import pick_model, uniform_model_space, df_cols, calc_density_profile, fill_troughs, \
-    uniform_sub_model_space, sig_resample, cor_v_space, rectangular_space_thickness_calculator, refined_search
+    uniform_sub_model_space, sig_resample, cor_v_space, rectangular_space_thickness_calculator, refined_search_2
 from parsers import parse_simulation_cfg
 # import itertools
 
@@ -648,7 +648,7 @@ class Sim1D(sc.Site, sm.Site1D):
         # Where the result will be stored.
         self.simulation_path = self.run_dir + name
         # Define the refinement space values for search.
-        self.model_space = refined_search(self.user_defined_model['vs'], delta, iterations)
+        self.model_space = refined_search_2(self.user_defined_model['vs'], delta, iterations)
 
         indexes, dimensions = self.model_space.shape
 
