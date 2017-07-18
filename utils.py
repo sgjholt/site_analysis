@@ -658,7 +658,7 @@ def cor_v_space(v_mod, hl_profile, count, lower_v=75, upper_v=4000, cor_co=0.5, 
         return space.T, np.append(v_mod, np.zeros(1))
 
 
-def refined_search(v_mod, delta, its, scale=1, rnd=True, repeat_layers=False, cor_co=0.5, repeat_chance=0.3,
+def refined_search(v_mod, delta, its, scale=1, rnd=True, repeat_layers=False, cor_co=0, repeat_chance=0.3,
                    plot=False):
     trials = np.zeros((len(v_mod), its))
     pdf = []

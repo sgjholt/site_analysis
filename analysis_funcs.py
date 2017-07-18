@@ -441,10 +441,13 @@ def vs_plot(site_obj, df):
     ax.step(plus_sig, depth, 'r--', label=r'$+/-\sigma$')
     ax.step(minus_sig, depth, 'r--')
     ax.grid(which='both')
-    plt.suptitle('Uncertainty in Vs after {0} trials - Vs30: {1}'.format(site_obj.sim_pars['iterations'],
+    try:
+        plt.suptitle('Uncertainty in Vs after {0} trials - Vs30: {1}'.format(site_obj.sim_pars['iterations'],
                                                                          vs_variable(mu, np.loadtxt(
                                                                              site_obj.sim_pars['refine_model_fname'],
                                                                              delimiter=',')[:, 1], 30)))
+    except:
+        pass
     plt.xlabel('$Vs [m/s]$')
     plt.ylabel('$Depth [m]$')
     try:

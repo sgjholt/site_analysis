@@ -142,5 +142,69 @@ def main():
     return bestParent, bestFitness
 
 
+# mock parents
+# x1 = np.array([0, 1])
+# x2 = np.array([1, 0])
+# x3 = np.array([3, 1])
+# #
+# g = np.mean((x1, x2, x3), axis=0)
+# d = x1 - g
+# e1 = 0#sp.linalg.orth(d[::, None]-x1)
+# e2 = sp.linalg.orth(d[::, None]-x2)
+# e3 = sp.linalg.orth(d[::, None]-x3)
+#
+#
+# D2 = np.linalg.norm(d-x2)
+# D3 = np.linalg.norm(d-x3)
+# D_bar = np.mean((D2, D3), axis=0)
+#
+#
+# for i in range(1000):
+#     y = (x1[::, None] + ((np.random.randn()*d) + np.sum((np.random.randn()*D_bar*e1, np.random.randn()*D_bar*e2,
+#                                                          np.random.randn()*D_bar*e3)))).flatten()
+#     print(y[0], y[1])
+#     plt.plot(y[0], y[1], '.', alpha=0.5)
+# plt.plot(g[0], g[1], 'ro')
+# plt.plot(x1[0], x1[1], 'ko', label='x1')
+#
+# d = x2 - g
+# e1 = sp.linalg.orth(d[::, None]-x1)
+# e2 = 0 #sp.linalg.orth(d[::, None]-x2)
+# e3 = sp.linalg.orth(d[::, None]-x3)
+#
+#
+# D1 = np.linalg.norm(d-x1)
+# D3 = np.linalg.norm(d-x3)
+# D_bar = np.mean((D1, D3), axis=0)
+#
+#
+# for i in range(1000):
+#     y = (x2[::, None] + ((np.random.randn()*d) + np.sum((np.random.randn()*D_bar*e1, np.random.randn()*D_bar*e2,
+#                                                          np.random.randn()*D_bar*e3)))).flatten()
+#     print(y[0], y[1])
+#     plt.plot(y[0], y[1], '.', alpha=0.5)
+# plt.plot(x2[0], x2[1], 'go', label='x2')
+#
+# d = x3 - g
+# e1 = sp.linalg.orth(d[::, None]-x1)
+# e2 = sp.linalg.orth(d[::, None]-x2)
+# e3 = 0#sp.linalg.orth(d[::, None]-x3)
+#
+#
+# D1 = np.linalg.norm(d-x1)
+# D2 = np.linalg.norm(d-x2)
+# D_bar = np.mean((D1, D2), axis=0)
+#
+#
+# for i in range(1000):
+#     y = (x3[::, None] + ((np.random.randn()*d) + np.sum((np.random.randn()*D_bar*e1, np.random.randn()*D_bar*e2,
+#                                                          np.random.randn()*D_bar*e3)))).flatten()
+#     print(y[0], y[1])
+#     plt.plot(y[0], y[1], '.', alpha=0.5)
+# plt.plot(x3[0], x3[1], 'bo', label='x3')
+#
+#
+# plt.legend(loc=2)
+
 if __name__ == '__main__':
     main()
